@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="submissionForm" action="/adrs/<%= adrId %>/submissions/<%= submission.id %>?_method=PUT" method="POST">
+      <div>
+        <label for="stage">Stage:</label>
+        <select id="stage" name="submission[stageId]">        
+            <% if (submission.stage.adr.stages) { %>
+              <% for (let stage of submission.stage.adr.stages) { %>
+                <option 
+                  value="<%= stage.id %>"
+                  <%= (submission.stageId==stage.id) ? "selected" : "" %>
+                >
+                  <%= stage.stage %>
+                </option>
+              <% } %>
+            <% } %>
+        </select>
+      </div>
+
+
+      <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="submission[date]" value="<%= dayjs(submission.date).format("YYYY-MM-DD") %>" %>">
+      </div>
+      
+      <div>
+        <label for="auditor">Auditor:</label>
+        <select id="auditor" name="submission[auditor]">
+          <% if (auditors) { %>
+            <% for (let auditor of auditors) { %>
+              <option 
+                value="<%= auditor.id %>"
+                <%= (auditor.id==submission.auditor.id) ? "selected" : "" %>
+              >
+                <%= auditor.auditor %>
+              </option>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+     
+      <button class="btn btn-primary" id="submitSubmission">Submit</button>
+    </form>
+    
+    <a href="/adrs/<%= submission.stage.adrId %>/submissions/<%= submission.id %>">Back to Submission</a>
+    
+  </div>
+  
+
+<%- include('../partials/footer') %>

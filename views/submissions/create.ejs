@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="submissionForm" action="/adrs/<%= adrId %>/submissions/new" method="POST">
+      <div>
+        <label for="stage">Stage:</label>
+        <select id="stage" name="submission[stageId]">        
+            <% if (adr.stages) {  %>
+              <% for (let stage of adr.stages) { %>
+                <option value="<%= stage.id %>"><%= stage.stage %></option>
+              <% } %>
+            <% } %>
+        </select>
+      </div>
+
+      <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="submission[date]">
+      </div>
+
+      <div>
+        <select id="auditor" name="submission[auditorId]">
+          <% if (auditors) { %>
+            <% for (let auditor of auditors) { %>
+              <option value="<%= auditor.id %>"><%= auditor.auditor %></option>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+     
+      <button class="btn btn-primary" id="submitSubmission">Submit</button>
+    </form>
+    <a href="/adrs/<%= adrId %>">Back to ADR</a>
+  </div>
+  
+
+<%- include('../partials/footer') %>

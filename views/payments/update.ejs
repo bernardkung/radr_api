@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form id="paymentForm" action="/adrs/<%= adrId %>/payments/<%= payment.id %>?_method=PUT" method="POST">
+      
+      <div>
+        <label for="srn">SRN:</label>
+        <select type="text" id="srn" name="payment[srnId]">
+          <% if (payment.srn.adr.srns) { %>
+            <% for (let srn of payment.srn.adr.srns) { %>
+              <option 
+                value=<%= srn.id %>
+                <%= (srn.srn==payment.srn) ? "selected" : "" %>
+              >
+                <%= srn.srn %>
+              </option>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+
+
+
+      <div>
+        <label for="payment_amount">Payment Amount:</label>
+        <input type="text" id="amount" 
+          name="payment[amount]" 
+          value="<%=payment.amount%>"
+        >
+      </div>
+      <div>
+        <label for="payment_date">Payment Date:</label>
+        <input type="date" id="date" 
+          name="payment[date]"
+          value="<%= dayjs(payment.date).format("YYYY-MM-DD") %>"
+        >
+      </div>
+      
+      <button id="submitPayment">Submit</button>
+    </form>
+    
+    <a href="/adrs/<%=adrId%>/payments/<%=payment.id%>">Back to Payments</a>
+    
+  </div>
+  
+
+<%- include('../partials/footer') %>
+
+
+

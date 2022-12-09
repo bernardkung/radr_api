@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+  <h1>Submission Show</h1>
+  <a href="/adrs/<%= adrId %>">Back to ADR</a>
+  
+  <p>Stage: <%= submission.stage.stage %></p>
+  <p>Date: <%= submission.date %></p>
+  <p>Auditor: <%= submission.auditor.auditor %></p>
+  
+  <a class="btn btn-primary" href="/adrs/<%= adrId %>/submissions/<%= submission.id %>/edit">Edit Submission</a>
+      
+  <form action="/adrs/<%= adrId %>/submissions/<%= submission.id %>?_method=DELETE" method="POST">
+    <input type="submit" class="btn btn-danger" value="Delete Submission" />
+  </form>
+</div>
+<%- include('../partials/footer') %>

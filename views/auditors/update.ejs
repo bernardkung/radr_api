@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form id="auditorForm" action="/auditors/<%= auditor.id %>?_method=PUT" method="POST">
+      <div>
+        <label for="auditor">Auditor:</label>
+        <input type="text" id="auditor" 
+          name="auditor[auditor]" 
+          value="<%= auditor.auditor %>"
+        >
+      </div>
+      
+      <button id="submitAuditor">Submit</button>
+    </form>
+    
+    <a href="/auditors/<%= auditor.id %>">Back to Auditor</a>
+    
+  </div>
+  
+
+<%- include('../partials/footer') %>

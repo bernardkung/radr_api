@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+      <h1>Index - Facilities</h1>
+      <a href="/facilities/new">Create</a>
+      
+      <% if (facilities) { for (let facility of facilities){ %>
+        <li><a href="/facilities/<%= facility.id %>"><%= facility.global_id %> - <%= facility.facility_name %></a></li>
+      <% }} %>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

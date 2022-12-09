@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+      <h1>Index - Patients</h1>
+      <a href="/patients/new">Create</a>
+      
+      <% if (patients) { for (let patient of patients){ %>
+        <li><a href="/patients/<%= patient.id %>"><%= patient.mrn %> - <%= patient.first_name %> <%= patient.last_name %></a></li>
+      <% }} %>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

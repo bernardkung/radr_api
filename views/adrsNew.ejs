@@ -1,0 +1,108 @@
+<%- include('partials/header') %>
+    
+    
+  <div class="container">
+    <form id="adrForm">
+      <!--Facility Info-->
+      <label for="global_id">Global ID:</label>
+      <input type="text" id="global_id">
+      <br><br>
+      <!--Patient Info-->
+      <label for="mrn">MRN:</label>
+      <input type="text" id="mrn">
+      <br><br>
+      <!--Claim Info-->
+      <label for="from_date">From Date:</label>
+      <input type="date" id="from_date">
+      <br><br>
+      
+      <label for="to_date">To Date:</label>
+      <input type="date" id="to_date">
+      <br><br>
+      
+      <label for="expected_reimbursement">Expected Reimbursement:</label>
+      <input type="text" id="expected_reimbursement" step="0.01">
+      <br><br>
+      
+      <label for="expected_reimbursement_80">Expected Reimbursement (80%):</label>
+      <input type="text" id="expected_reimbursement_80" step="0.01">
+      <br><br>
+      
+      <label for="active">Claim Status:</label>
+      <input type="radio" id="active_true" name="active" value=true checked>Active</input>
+      <br>
+      <input type="radio" id="active_false" name="active" value=false>Inactive</input>
+      <br><br>
+      
+      <label for="mcr_status">Payment Status:</label>
+      <input type="radio" name="mcr_status" id="denied" value="denied" checked>Denied</input>
+      <br>
+      <input type="radio" name="mcr_status" id="partially_denied" value="partially_denied">Partially Denied</input>
+      <br>
+      <input type="radio" name="mcr_status" id="paid_in_full" value="paid_in_full">Paid in Full</input>
+      <br>
+      <input type="radio" name="mcr_status" id="other" value="other">Other</input>
+            
+    </form>
+  </div>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', initiate)
+  
+  function initiate(){
+    const erDiv = document.querySelector("#expected_reimbursement")
+    const er80Div = document.querySelector("#expected_reimbursement_80")
+    
+    const fromDiv = document.querySelector("#from_date")
+    const toDiv = document.querySelector("#to_date")
+    
+    erDiv.addEventListener("input", (event)=>{autoER80(erDiv, er80Div)});
+    fromDiv.addEventListener("input", (event)=>{validateClaimMonths(fromDiv, toDiv)});
+    toDiv.addEventListener("input", (event)=>{validateClaimMonths(fromDiv, toDiv)});
+    // autoER80(erDiv, er80Div)
+    
+    function autoER80(div1, div2) {
+      if (div1.value) {
+        div2.value = (0.8*div1.value).toFixed(2)
+      } else {
+        div2.value = ""
+      }
+    }
+    
+    function validateClaimMonths(div1, div2) {
+      if (div1.value && div2.value) {
+        const date1 = new Date(div1.value);
+        const date2 = new Date(div2.value);
+        const month1 = date1.getMonth();
+        const month2 = date2.getMonth();
+        if (month1 === month2) {
+          setDivClass(div1, "valid", "invalid");
+          setDivClass(div2, "valid", "invalid");
+          return true;
+        } else {
+          setDivClass(div1, "invalid", "valid");
+          setDivClass(div2, "invalid", "valid");
+          return false;
+        }
+      }
+    }
+    
+    function setDivClass(div, addClass, delClass) {
+      if (div.classList.contains(delClass)) {
+        div.classList.remove(delClass);
+      }
+      div.classList.add(addClass);
+    }
+    
+    function validateLength(string, length) {
+      if (string.length===length) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
+  }  
+  </script>
+
+<%- include('partials/footer') %>

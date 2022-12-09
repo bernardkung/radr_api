@@ -1,0 +1,54 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="stageForm" action="/adrs/<%= adrId %>/stages/new" method="POST">
+            
+      <div>
+        <label for="stage">Stage:</label>
+        <select id="stage" name="stage[stage]">
+          <% if (stages) { for (let stage of stages){ %>
+            <option value="<%= stage %>"> <%= stage %> </option>
+          <% }} %>
+        </select>
+      </div>
+
+      <div>
+        <label for="notification_date">Notification Date:</label>
+        <input type="date" id="notification_date" name="stage[notification_date]">
+      </div>
+      
+      <div>
+        <label for="due_date">Due Date:</label>
+        <input type="date" id="due_date" name="stage[due_date]">
+      </div>
+      <div>
+        <label for="submitted">Submitted:</label>
+        <select id="submitted" name="stage[submitted]">
+          <option value=true>Active</option>
+          <option value=false>Inactive</option>
+        </select>
+      </div>
+      <div>
+        <label for="decided">Decided:</label>
+        <select id="decided" name="stage[decided]">
+          <option value=true>Active</option>
+          <option value=false>Inactive</option>
+        </select>
+      </div>
+      <div>
+        <label for="active">Active:</label>
+        <select id="active" name="stage[active]">
+          <option value=true>Active</option>
+          <option value=false>Inactive</option>
+        </select>
+      </div>
+
+     
+      <button class="btn btn-primary" id="submitStage">Submit</button>
+    </form>
+    <a href="/adrs/<%= adrId %>">Back to ADR</a>
+  </div>
+  
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+      <h1>Index - SRNs</h1>
+      
+    <% if (srns) { for (let srn of srns){ %>
+        <li>
+          <a href="/adrs/<%= srn.adr_id %>/srns/<%= srn._id %>">
+            <%= srn.srn %> - <%= srn.adr_id %>
+          </a>
+        </li>
+      <% }} %>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

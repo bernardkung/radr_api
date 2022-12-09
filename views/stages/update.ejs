@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="stageForm" action="/adrs/<%= adrId %>/stages/<%= stage.id %>?_method=PUT" method="POST">
+
+      <div>
+        <label for="stage">Stage:</label>
+        <select id="stage" name="stage[stage]">
+          <% if (stageValues) { for (let stageValue of stageValues){ %>
+            <option 
+              value="<%= stageValue %>"
+              <%= (stage.stage==stageValue) ? "selected" : "" %>
+            >
+              <%= stageValue %> 
+            </option>
+          <% }} %>
+        </select>
+      </div>
+
+      <div>
+        <label for="notification_date">Notification Date:</label>
+        <input 
+          type="date" 
+          id="notification_date" 
+          name="stage[notification_date]" 
+          value="<%= dayjs(stage.notification_date).format('YYYY-MM-DD') %>"
+        >
+      </div>
+
+      <div>
+        <label for="due_date">Due Date:</label>
+        <input type="date" id="due_date" name="stage[due_date]" value="<%= dayjs(stage.due_date).format('YYYY-MM-DD') %>"
+        >
+      </div>
+
+      <div>
+        <label for="submitted">Submitted:</label>
+        <select id="submitted" name="stage[submitted]">
+          <option value=true <%= stage.decided ? "selected" : ""  %> >True</option>
+          <option value=false <%= !stage.decided ? "selected" : ""  %> >False</option>
+        </select>
+      </div>
+
+
+      <div>
+        <label for="decided">Decided:</label>
+        <select id="decided" name="stage[decided]">
+          <option value=true <%= stage.decided ? "selected" : ""  %> >
+            True
+          </option>
+          <option value=false <%= !stage.decided ? "selected" : "" %> > False</option>
+        </select>
+      </div>
+      
+
+      <div>
+        <label for="active">Active:</label>
+        <select id="active" name="stage[active]">
+          <option value=true <%= stage.active ? "selected" : ""  %> >Active</option>
+          <option value=false <%= !stage.active ? "selected" : ""  %> >Inactive</option>
+        </select>
+      </div>
+     
+
+      <button class="btn btn-primary" id="submitStage">Submit</button>
+    </form>
+    <a href="/adrs/<%= adrId %>">Back to ADR</a>
+  </div>
+  
+
+<%- include('../partials/footer') %>

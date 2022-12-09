@@ -1,0 +1,71 @@
+
+<div id="timelineContainer">
+  hi!
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  
+  document.addEventListener("DOMContentLoaded", ()=>{
+    fetch('http://localhost:3000/adrs/api/2')
+      .then(res => res.json())
+      .then(data => getEvents(data))
+      .then(events => updateGraph(events))
+  })
+
+  function getEvents(data) {
+    console.log(data)
+    const events = []
+    // payments
+    for (let srn of data.adr.srns) {
+      for (let payment of srn.payments) {
+        events.push(
+          {...payment, 'type':'payment'}
+        )
+      }
+    }
+    // submissions & decisions
+    let first_notification = 0
+    for (let stage of data.adr.stages) {
+
+      // submissions
+      for (let submission of stage.submissions) {
+        events.push(
+          {...submission, 'type':'submission'}
+        )
+      }
+      // decisions
+      for (let decision of stage.decisions) {
+        events.push(
+          {...decision, 'type':'decision'}
+        )
+      }
+
+      // original notification date
+      // this needs work!
+      // if (stage.notification_date < first_notification) {
+      //   first_notification = stage.notification_date
+      // }
+      
+      
+      // console.log(first_notification)
+
+      // due dates
+      events.push(
+        {'date':'due_date', 'stage':'stage'}
+      )
+    }
+
+    console.log(events)
+    return events
+  }
+  
+  function updateGraph(events) {
+    d3.select("#timelineContainer")
+      .append("svg")
+      .attr("width", 600)
+      .attr("height", 100)
+
+  }
+
+</script>

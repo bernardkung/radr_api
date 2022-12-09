@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    
+  
+  <h1>Auditor Show</h1>
+  
+  <form action="/auditors/<%= auditor.id %>/edit">
+    <input type="submit" class="btn btn-primary" value="Edit Auditor" />
+  </form>
+      
+  <form action="/auditors/<%= auditor.id %>?_method=DELETE" method="POST">
+    <input type="submit" class="btn btn-danger" value="Delete Auditor" />
+  </form>
+  
+  <table>
+    <tr><th>Auditor</th>          <td><%= auditor.auditor %></td></tr>
+    <tr><th>Auditor ID</th>       <td><%= auditor.id %></td></tr>
+    <tr><th>Created On</th>       <td><%= auditor.createdAt %></td></tr>
+    <tr><th>Updated On</th>       <td><%= auditor.updatedAt %></td></tr>
+  </table>
+
+  <a href="/auditors/">Back to Auditors</a>
+</div>
+
+<%- include('../partials/footer') %>

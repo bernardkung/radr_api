@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <h1>Index - Decisions</h1>
+    <a href="/decisions/new">Create</a>
+    
+    <% if (decisions) { for (let decision of decisions){ %>
+      <li><a href="/adrs/<%= adr_id %>/decisions/<%= decision._id %>"> 
+        <%= decision.date %> - <%= decision.stage %> 
+      </a></li>
+    <% }} %>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

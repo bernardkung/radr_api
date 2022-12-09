@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    
+    <h1>Payments Show</h1>
+    <p><a href="/adrs/<%= adrId %>/">Back to ADR</a></p>
+    
+    <p>SRN: <%= payment.srn.srn %></p>
+    <p>Payment Amount: <%= payment.amount %></p>
+    <p>Payment Date: <%= dayjs(payment.date).format("MM/DD/YYYY") %></p>
+    
+    
+    <form action="/adrs/<%= adrId %>/payments/<%= payment.id %>/edit">
+      <input type="submit" class="btn btn-primary" value="Edit Payment" />
+    </form>
+        
+    <form action="/adrs/<%= adrId %>/payments/<%= payment.id %>?_method=DELETE" method="POST">
+      <input type="submit" class="btn btn-danger" value="Delete Payment" />
+    </form>
+
+</div>
+
+<%- include('../partials/footer') %>

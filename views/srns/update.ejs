@@ -1,0 +1,29 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form id="srnForm" action="/adrs/<%= adrId %>/srns/<%= srn.id %>?_method=PUT" method="POST">
+      <div>
+        <label for="srn">SRN:</label>
+        <input type="text" id="srn" 
+          name="srn[srn]" 
+          value="<%= srn.srn %>"
+        >
+      </div>
+      <div>
+        <label for="srn">ADR:</label>
+        <input type="text" id="adrId" 
+          name="srn[adrId]" 
+          value="<%= srn.adrId %>"
+          disabled
+        >
+      </div>
+      <button class="btn btn-primary" id="submitSrn">Submit</button>
+    </form>
+    
+    <a href="/adrs/<%= adrId %>/srns/<%= srn.id %>">Back to SRN</a>
+    
+  </div>
+  
+
+<%- include('../partials/footer') %>

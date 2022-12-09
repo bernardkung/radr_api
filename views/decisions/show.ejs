@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+  <h1>Decision Show</h1>
+  <a href="/adrs/<%= adrId %>">Back to ADR</a>
+  
+  <p>Stage: <%= decision.stage.stage %></p>
+  <p>Date: <%= decision.date %></p>
+  <p>Decision: <%= decision.decision %></p>
+  
+  <form action="/adrs/<%= adrId %>/decisions/<%=decision.id%>/edit">
+    <input type="submit" class="btn btn-primary" value="Edit Decision" />
+  </form>
+      
+  <form action="/adrs/<%= adrId %>/decisions/<%= decision.id %>?_method=DELETE" method="POST">
+    <input type="submit" class="btn btn-danger" value="Delete Decision" />
+  </form>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+      <h1>Index - Auditors</h1>
+      <a href="/auditors/new">Create</a>
+      
+      <% if (auditors) { for (let auditor of auditors){ %>
+        <li><a href="/auditors/<%= auditor.id %>"><%= auditor.auditor %></a></li>
+      <% }} %>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

@@ -1,0 +1,243 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+
+<!-- TITLE -->
+<h1>ADR Details</h1>
+<nav class="navbar--col">
+</nav>
+
+<!-- MENU -->
+<a class="btn btn-primary" href="/adrs/<%= adr.id %>/edit">Edit ADR</a>
+<form action="/adrs/<%= adr.id %>?_method=DELETE" method="POST">
+  <input type="submit" class="btn btn-danger" value="Delete ADR" />
+</form>
+
+<!-- TIMELINE -->
+<%- include('../partials/timeline') %>
+
+<!-- DETAILS -->
+<table id="adrTable">
+  <tr>
+    <th>Global ID</th>
+    <td><%= adr.facility.global_id %></td>
+  </tr>
+  <tr>
+    <th>MRN</th>
+    <td><%= adr.patient.mrn %></td>
+  </tr>
+  <tr>
+    <th>Last Name</th>
+    <td><%= adr.patient.last_name %></td>
+  </tr>
+  <tr>
+    <th>First Name</th>
+    <td><%= adr.patient.first_name %></td>
+  </tr>
+  <tr>
+    <th>From Date</th>
+    <td><%= dayjs(adr.from_date).format('MM/DD/YYYY') %></td>
+  </tr>
+  <tr>
+    <th>To Date</th>
+    <td><%= dayjs(adr.to_date).format('MM/DD/YYYY') %></td>
+  </tr>
+  <tr>
+    <th>Exp. Reimbursement</th>
+    <td>$<%= currency(adr.expected_reimbursement) %></td>
+  </tr>
+  <tr>
+    <th>Exp. Reimbursement (80%)</th>
+    <td>$<%= currency(adr.expected_reimbursement_80) %></td>
+  </tr>
+  <tr>
+    <th>Net Payment</th>
+    <td>$<%= currency(adr.net_payment) %></td>
+  </tr>
+  <tr>
+    <th>Current Balance</th>
+    <td>$<%= currency(adr.current_balance) %></td>
+  </tr>
+  <tr>
+    <th>Active</th>
+    <td><%= adr.active ? "Active" : "Inactive" %></td>
+  </tr>
+  <tr>
+    <th>Medicare Status</th>
+    <td><%= prettifyString(adr.mcr_status) %></td>
+  </tr>
+  <tr>
+    <th>ADR ID</th>
+    <td><%= adr.id %></td>
+  </tr>
+  <tr>
+    <th>Last Updated</th>
+    <td><%= dayjs(adr.updatedAt).format('MM/DD/YYYY hh:mm a') %></td>
+  </tr>
+  <tr>
+    <th>Created On</th>
+    <td><%= dayjs(adr.createdAt).format('MM/DD/YYYY hh:mm a') %></td>
+  </tr>
+</table>
+
+<!-- STAGES -->
+<table id="stageTable">
+<h3>Stages</h3>
+  <tr>
+    <th>Stage</th>
+    <th>Notification Date</th>
+    <th>Due Date</th>
+    <th>Submitted</th>
+    <th>Decided</th>
+    <th>Active</th>
+  </tr>
+
+  <% if (adr.stages) {  %>
+    <% for (let stage of adr.stages) { %>
+      <tr>
+        <td>
+          <a href="/adrs/<%= adr.id %>/stages/<%= stage.id %>">
+            <%= stage.stage %>
+          </a>
+        </td>
+        <td><%= dayjs(stage.notification_date).format("MM/DD/YYYY") %></td>
+        <td><%= dayjs(stage.due_date).format("MM/DD/YYYY") %></td>
+        <td><%= stage.submitted %></td>
+        <td><%= stage.decided %></td>
+        <td><%= stage.active %></td>
+      </tr>
+    <% } %>
+  <% } %>
+
+  <tr>
+    <td class="spanTd" colspan="6"><a href="/adrs/<%= adr.id %>/stages/new">Add Stage</a></td>
+  </tr>
+</table>
+
+<!-- SRN -->
+<table id="srnTable">
+<h3>SRNs</h3>
+  <tr>
+    <th>SRN</th>
+  </tr>
+  <% for (let srn of adr.srns){ %>
+    <tr>
+      <td>
+        <a href="/adrs/<%= adr.id %>/srns/<%= srn.id %>">
+          <%= srn.srn %>
+        </a>
+      </td>
+    </tr>
+  <% } %>
+  <tr>
+    <td class="spanTd" colspan="1"><a href="/adrs/<%= adr.id %>/srns/new">Add SRN</a></td>
+  </tr>
+</table>
+
+<!-- SUBMISSION -->
+<table id="submissionTable">
+<h3>Submissions</h3>
+  <tr>
+    <th>Stage</th>
+    <th>Date</th>
+    <th>Auditor</th>
+  </tr>
+  <% if (adr.stages) {  %>
+    <% for (let stage of adr.stages) { %>
+      <% if (stage.submissions) { %>
+        <% for (let submission of stage.submissions) { %>
+          
+            <tr>
+              <td>
+                <%= stage.stage %>
+              </td>
+              <td>
+                <a href="/adrs/<%= adr.id %>/submissions/<%=submission.id%>">
+                  <%= dayjs(submission.date).format("MM/DD/YYYY") %>
+                </a>
+              </td>
+              <td>
+                <%= submission.auditor.auditor %>
+              </td>
+            </tr>
+
+        <% } %>
+      <% } %>
+    <% } %>
+  <% } %>
+  <tr>
+    <td class="spanTd" colspan="3">
+      <a href="/adrs/<%= adr.id %>/submissions/new">Add Submission</a>
+    </td>
+  </tr>
+</table>
+
+<!-- DECISION -->
+<table id="decisionTable">
+<h3>Decisions</h3>
+  <tr>
+    <th>Stage</th>
+    <th>Date</th>
+    <th>Decision</th>
+  </tr>
+  
+  <% if (adr.stages) {  %>
+    <% for (let stage of adr.stages) { %>
+      <% if (stage.decisions) { %>
+        <% for (let decision of stage.decisions) { %>
+          
+            <tr>
+              <td>
+                <%= stage.stage %>
+              </td>
+              <td>
+                <a href="/adrs/<%= adr.id %>/decisions/<%= decision.id %>">
+                  <%= dayjs(decision.date).format("MM/DD/YYYY") %>
+                </a>
+              </td>
+              <td><%= decision.decision %></td>
+            </tr>
+
+        <% } %>
+      <% } %>
+    <% } %>
+  <% } %>
+  <tr>
+    <td class="spanTd" colspan="3">
+      <a href="/adrs/<%= adr.id %>/decisions/new">Add Decision</a>
+    </td>
+  </tr>
+</table>
+
+<!-- PAYMENT -->
+<table id="paymentTable">
+  <h3>Payments</h3>
+    <tr>
+      <th>Date</th>
+      <th>Payment</th>
+    </tr>
+    <% if (adr.srns) { for (let srn of adr.srns){ %>
+      <% if (srn.payments!==[]) { for (let payment of srn.payments) { %>
+        <tr>
+          <td>
+            <%= dayjs(payment.date).format('MM/DD/YYYY') %>
+          </td>
+          <td>
+            <a href="/adrs/<%= adr.id %>/payments/<%= payment.id %>">
+              $<%= currency(payment.amount) %>
+            </a>
+          </td>
+        </tr>
+      <% }} %>
+    <% }} %>
+
+    <tr>
+      <td class="spanTd" colspan="2">
+        <a href="/adrs/<%= adr.id %>/payments/new">Add Payment</a>
+      </td>
+    </tr>
+  </table>
+
+</div>
+
+<%- include('../partials/footer') %>

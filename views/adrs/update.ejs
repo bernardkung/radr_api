@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form id="adrForm" class="bigForm" action="/adrs/<%= adr.id %>?_method=PUT" method="POST">
+      <!--Facility Information-->
+      <div>
+        <label for="global_id">Global ID:</label>
+        <select type="text" id="global_id" name="adr[facilityId]">
+          <% for (let i=0; i < facilities.length; i++) { %>
+            <% if (facilities[i].id==adr.facility.id) { %>
+              <option value=<%= facilities[i].id %> selected><%= facilities[i].global_id %></option>
+            <% } else { %>
+              <option value=<%= facilities[i].id %>><%= facilities[i].global_id %></option>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+      
+      <!--Patient Information -->
+      <div>
+        <label for="mrn">MRN:</label>
+        <select type="text" id="mrn" name="adr[patientId]">
+          <% for (let i=0; i < patients.length; i++) { %>
+            <% if (patients[i].id==adr.patient.id) { %>
+              <option value=<%= patients[i].id %> selected><%= patients[i].mrn %></option>
+            <% } else { %>
+              <option value=<%= patients[i].id %>><%= patients[i].mrn %></option>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+
+      <div>
+        <label for="from_date">From Date:</label>
+        <input type="date" id="from_date" name="adr[from_date]" value="<%= dayjs(adr.from_date).format("YYYY-MM-DD") %>">
+      </div>
+      <div>
+        <label for="to_date">To Date:</label>
+        <input type="date" id="to_date" name="adr[to_date]" value="<%= dayjs(adr.to_date).format("YYYY-MM-DD") %>">
+      </div>
+      <div>
+        <label for="expected_reimbursement">Expected Reimbursement:</label>
+        <input type="text" id="expected_reimbursement" name="adr[expected_reimbursement]" step="0.01" value="<%= adr.expected_reimbursement %>">
+      </div>
+      <div>
+        <label for="expected_reimbursement_80">Expected Reimbursement (80%):</label>
+        <input type="text" id="expected_reimbursement_80" name="adr[expected_reimbursement_80]" step="0.01" value="<%= adr.expected_reimbursement_80 %>">
+      </div>
+      <div>
+        <label for="active">Claim Status:</label>
+        <select id="active" name="adr[active]">
+          <option value=true>Active</option>
+          <option value=false>Inactive</option>
+        </select>
+      <div>
+        <label for="mcr_status">Payment Status:</label>
+        <select id="mcr_status" name="adr[mcr_status]">
+          <option value="denied">Denied</option>
+          <option value="partially_denied">Partially Denied</option>
+          <option value="paid_in_full">Paid in Full</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <br>
+      <button class="btn btn-primary" id="submitAdr">Submit</button>
+    </form>    
+    
+  </div>
+  
+  <script>
+  
+  // Initialize the select input values
+  function initializeSelectValue(divId, key) {
+    const selectDiv = document.querySelector(`#${divId}`);
+    selectDiv.value = key;
+  }
+  
+  window.addEventListener('load', ()=>{
+    initializeSelectValue("active", '<%= adr.active %>');
+    initializeSelectValue("mcr_status", '<%= adr.mcr_status %>');
+  })
+  
+  // Autocalculate ER80 from ER
+  function autoER80(div1, div2) {
+    if (div1.value) {
+      div2.value = (0.8*div1.value).toFixed(2)
+    } else {
+      div2.value = ""
+    }
+  }
+  const erDiv = document.querySelector("#expected_reimbursement")
+  const er80Div = document.querySelector("#expected_reimbursement_80")
+  
+  erDiv.addEventListener("input", (event)=>{autoER80(erDiv, er80Div)});
+  
+  console.log("id:", <%= adr.facility.id %>)
+  
+  console.log(<%= facilities[0] %>)wwww
+  
+  </script>
+
+<%- include('../partials/footer') %>

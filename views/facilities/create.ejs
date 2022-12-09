@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="facilityForm" action="/facilities/new" method="POST">
+      <div>
+        <label for="global_id">Global ID:</label>
+        <input type="text" id="global_id" name="facility[global_id]">
+      </div>
+      <div>
+        <label for="facility_id">Facility ID:</label>
+        <input type="text" id="facility_id" name="facility[facility_id]">
+      </div>
+      <div>
+        <label for="facility_name">Facility Name:</label>
+        <input type="text" id="facility_name" name="facility[facility_name]">
+      </div>
+      <div>
+        <label for="division">Division:</label>
+        <input type="text" id="division" name="facility[division]">
+      </div>
+      <div>
+        <label for="operating_group">Operating Group:</label>
+        <input type="text" id="operating_group" name="facility[operating_group]">
+      </div>
+      <div>
+        <label for="region">Region:</label>
+        <input type="text" id="region" name="facility[region]">
+      </div>
+      <div>
+        <label for="billing_group">Billing Group:</label>
+        <input type="text" id="billing_group" name="facility[billing_group]">
+      </div>
+      <div>
+        <label for="mac">MAC:</label>
+        <input type="text" id="mac" name="facility[mac]">
+      </div>
+      <button class="btn btn-primary" id="submitFacility">Submit</button>
+    </form>
+  </div>
+  
+
+<%- include('../partials/footer') %>

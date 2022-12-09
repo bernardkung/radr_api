@@ -1,0 +1,29 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form id="patientForm" action="/patients/<%=patient.id%>?_method=PUT" method="POST">
+      <div>
+        <label for="mrn">MRN:</label>
+        <input type="text" id="mrn" name="patient[mrn]" value="<%=patient.mrn%>">
+      </div>
+      <div>
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="patient[first_name]" value="<%=patient.first_name%>">
+      </div>
+      <div>
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="patient[last_name]" value="<%=patient.last_name%>">
+      </div>
+     
+      <button class="btn btn-primary" id="submitPatient">Update</button>
+    </form>
+    
+    <form action="/patients/">
+      <input type="submit" class="btn btn-secondary" value="Cancel" />
+    </form>
+    
+  </div>
+  
+
+<%- include('../partials/footer') %>

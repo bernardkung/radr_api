@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="paymentForm" action="/adrs/<%= adrId %>/payments/new" method="POST">
+     
+      <div>
+        <label for="srn">SRN:</label>
+        <select type="text" id="srn" name="payment[srnId]">
+          <% if (adr.srns) { %>
+            <% for (let srn of adr.srns) { %>
+              <option value=<%= srn.id %>><%= srn.srn %></option>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+
+      <div>
+        <label for="amount">Payment Amount:</label>
+        <input type="text" id="amount" name="payment[amount]" step="0.01">
+      </div>
+      <div>
+        <label for="date">Payment Date:</label>
+        <input type="date" id="date" name="payment[date]">
+      </div>
+     
+      <button id="submitpayment">Submit</button>
+    </form>
+  </div>
+  
+
+<%- include('../partials/footer') %>

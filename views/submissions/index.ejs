@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <h1>Index - Submissions</h1>
+    <a href="/submissions/new">Create</a>
+    
+    <table>
+    <% if (submissions) { for (let submission of submissions){ %>
+      <tr>
+        <th>Date</th>
+        <th>Stage</th>
+        <th>Auditor</th>
+      </tr>
+      <tr>
+        <td>
+          <a href="/adrs/<%= submission.adrId %>/submissions/<%= submission._id %>">
+            <%= dayjs(submission.date).format("MM/DD/YYYY") %>
+          </a>
+        </td>
+        
+        <td><%= submission.stage %></td>
+        <td><%= submission.auditor %></td>
+      </tr>
+    <% }} %>
+    </table>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+      <h1>Index - ADRs</h1>
+      <a href="/adrs/new">Create</a>
+      
+      <table>
+      <% if (adrs) { for (let adr of adrs){ %>
+        <tr>
+          <td><li><a href="/adrs/<%= adr.id %>">Link</a></li></td>
+          <td><%= adr.facility.global_id %></td>
+          <td><%= adr.patient.mrn %></td>
+          <td><%= adr.patient.last_name %></td>
+          <td><%= adr.patient.first_name %></td>
+          <td><%= dayjs(adr.from_date).format("MM/DD/YYYY") %></td>
+          <td><%= dayjs(adr.to_date).format("MM/DD/YYYY") %></td>
+          </a></li>
+        </tr>
+      <% }} %>
+    </table>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

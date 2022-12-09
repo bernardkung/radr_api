@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    
+  
+  <h1>Facilities Show</h1>
+  
+  <form action="/facilities/<%=facility.id%>/edit">
+    <input type="submit" class="btn btn-primary" value="Edit Facility" />
+  </form>
+      
+  <form action="/facilities/<%=facility.id%>?_method=DELETE" method="POST">
+    <input type="submit" class="btn btn-danger" value="Delete Facility" />
+  </form>
+  
+  <table>
+  <tr><th>Global ID</th>        <td><%= facility.global_id %></td></tr>
+  <tr><th>Facility ID</th>      <td><%= facility.facility_id %></td></tr>
+  <tr><th>Facility Name</th>    <td><%= facility.facility_name %></tdp></tr>
+  <tr><th>Division</th>         <td><%= facility.division %></td></tr>
+  <tr><th>Operating Group</th>  <td><%= facility.operating_group %></td></tr>
+  <tr><th>Region</th>           <td><%= facility.region %></td></tr>
+  <tr><th>Billing Group</th>    <td><%= facility.billing_group %></td></tr>
+  <tr><th>MAC</th>              <td><%= facility.mac %></td></tr>
+  <tr><th>Created On</th>       <td><%= facility.createdAt %></td></tr>
+  <tr><th>Updated On</th>       <td><%= facility.updatedAt %></td></tr>
+  </table>
+
+  <a href="/facilities/">Back to Facilities</a>
+</div>
+
+<%- include('../partials/footer') %>

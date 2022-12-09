@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="decisionForm" action="/adrs/<%= adrId %>/decisions/<%= decision.id %>?_method=PUT" method="POST">
+      
+      <div>
+        <label for="decision">Decision:</label>
+        <select id="decision" name="decision[decision]">
+          <% for (let decisionValue of decisionValues){ %>
+            <option 
+              value="<%= decisionValue %>"
+              <%= (decision.decision==decisionValue) ? "selected" : "" %>
+            >
+              <%= decisionValue %>
+            </option>
+          <% } %>
+        </select>
+      </div>
+      
+      <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="decision[date]" value="<%= dayjs(decision.date).format("YYYY-MM-DD") %>">
+      </div>
+      
+      <div>
+        <label for="stage">Stage:</label>
+        <select id="stage" name="decision[stageId]">        
+            <% if (decision.stage.adr.stages) {  %>
+              <% for (let stage of decision.stage.adr.stages) { %>
+                <option 
+                  value="<%= stage.id %>"
+                  <%= (decision.stageId==stage.id) ? "selected" : "" %>
+                >
+                  <%= stage.stage %>
+                </option>
+              <% } %>
+            <% } %>
+        </select>
+      </div>
+
+
+
+
+      
+     
+      <button class="btn btn-primary" id="submitDecision">Submit</button>
+    </form>
+    
+    <a href="/adrs/<%= adrId%>/decisions/<%= decision.id %>">Back to Decision</a>
+    
+  </div>
+  
+
+<%- include('../partials/footer') %>

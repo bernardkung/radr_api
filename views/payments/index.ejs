@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+      <h1>Index - Payments</h1>
+      <a href="/payments/new">Create</a>
+      
+      <% if (payments) { for (let payment of payments){ %>
+        <li><a href="/payments/<%= payment.srn %>"> <%= payment.date %> - <%= payment.amount %> </a></li>
+      <% }} %>
+  </div>
+  
+  
+<%- include('../partials/footer') %>

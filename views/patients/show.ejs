@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <h1>Patient - Show</h1>
+    
+          
+    <form action="/patients/<%=patient.id%>/edit">
+      <input type="submit" class="btn btn-primary" value="Edit Patient" />
+    </form>
+      
+    <form action="/patients/<%=patient.id%>?_method=DELETE" method="POST">
+      <input type="submit" class="btn btn-danger" value="Delete Patient" />
+    </form>
+    
+    <p>MRN: <%= patient.mrn %></p>
+    <p>First Name: <%= patient.first_name %></p>
+    <p>Last Name: <%= patient.last_name %></p>
+
+    
+    <a href="/patients/">Back to Patients</a>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="auditorForm" action="/auditors/new" method="POST">
+      <div>
+        <label for="auditor">Auditor:</label>
+        <input type="text" id="auditor" name="auditor[auditor]">
+      </div>
+      <button class="btn btn-primary" id="submitAuditor">Submit</button>
+    </form>
+  </div>
+  
+
+<%- include('../partials/footer') %>

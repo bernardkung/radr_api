@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+    
+    
+  <div class="container">
+    <form class="bigForm" id="decisionForm" action="/adrs/<%= adrId %>/decisions/new" method="POST">
+      
+      <div>
+        <label for="decision">Decision:</label>
+        <select id="decision" name="decision[decision]">
+        
+        <% for (let decisionValue of decisionValues){ %>
+          <option value="<%= decisionValue %>">
+            <%= decisionValue %>
+          </option>
+        <% } %>
+          
+        </select>
+      </div>
+      
+      <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="decision[date]">
+      </div>
+      
+      <div>
+        <label for="stage">Stage:</label>
+        <select id="stage" name="decision[stageId]">        
+            <% if (adr.stages) {  %>
+              <% for (let stage of adr.stages) { %>
+                <option value="<%= stage.id %>"><%= stage.stage %></option>
+              <% } %>
+            <% } %>
+        </select>
+      </div>
+     
+      <button class="btn btn-primary" id="submitDecision">Submit</button>
+    </form>
+    <a href="/adrs/<%= adrId %>">Back to ADR</a>
+  </div>
+  
+
+<%- include('../partials/footer') %>
