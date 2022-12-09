@@ -96,12 +96,17 @@ router.get("/:id", async (req, res)=>{
         models.patient,
       ],
     })
-  
-    // Calculated Fields
-    adr.net_payment = calculateNetPayment(adr)
-    adr.current_balance = adr.expected_reimbursement_80 - adr.net_payment
-  
-    res.status(200).json({adr})
+    // If no ADR retrieved
+    if (!adr) {
+      res.status(404).send("no ADR retrieved under that ID")
+    } else {
+      // Calculated Fields
+      adr.net_payment = calculateNetPayment(adr)
+      adr.current_balance = adr.expected_reimbursement_80 - adr.net_payment
+    
+      res.status(200).json({adr})
+    }
+
   } catch (err) {
     res.status(400).send(err)
   }
