@@ -39,9 +39,9 @@ router.post("/new", async (req, res)=>{
 router.get("/:id", async (req, res)=>{
   try {
     const facility = await models.facility.findByPk(req.params.id)
-    // If no facility found
     if (!facility) {
-      res.status(404).end()
+      // If no facility found
+      res.status(404).send("no Facility found under given ID")
     } else {
       res.status(200).json({facility})
     }
@@ -54,8 +54,8 @@ router.get("/:id", async (req, res)=>{
 router.get("/:id/edit", async (req, res)=>{
   try {
     const facility = await models.facility.findByPk(req.params.id)
-    // If no facility found
     if (!facility) {
+      // If no facility found
       res.sendStatus(404).send("no Facility found under given ID")
     } else {
       res.status(200).json({ facility })
@@ -69,8 +69,13 @@ router.get("/:id/edit", async (req, res)=>{
 router.put("/:id", async (req, res)=>{
   try {
     const facility = await models.facility.findByPk(req.params.id);
-    await facility.update(req.body.facility)
-    res.status(201).end()
+    if (!facility) {
+      // If no facility found
+      res.sendStatus(404).send("no Facility found under given ID")
+    } else {
+      await facility.update(req.body.facility)
+      res.status(201).end()
+    }
   } catch (err) {
     res.status(400).send(err)
   }
@@ -81,9 +86,15 @@ router.put("/:id", async (req, res)=>{
 router.delete("/:id", async (req, res)=>{
   //
   try {
-    const facility = await models.facility.findByPk(req.params.id)
-    await facility.destroy()
-    res.redirect('/facilities')
+    const facility = await models.facility.findByPk(req.params.id)    
+    if (!facility) {
+      // If no facility found
+      res.status(404).send("no Facility found under given ID")
+    } else {
+      // Destroy
+      await facility.destroy()
+      res.status(201).end()
+    }
   } catch (err) {
     res.status(400).send(err)
   }
