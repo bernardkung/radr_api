@@ -66,7 +66,7 @@ router.post("/new", async (req, res)=>{
       facilityId: req.body.facility.id
     }
     const adr = await models.adr.create(newAdr);
-    res.status(204)
+    res.status(204).end()
   } catch (err) {
     res.status(400).send(err)
   }
@@ -136,7 +136,7 @@ router.put("/:id", async (req, res)=>{
     const adr = await models.adr.findByPk(req.params.id)
     adr.update(req.body.adr)
     await adr.save()
-    res.status(204)
+    res.status(204).end()
   } catch (err) {
     res.status(400).send(err)
   }
@@ -149,7 +149,7 @@ router.delete("/:id", async (req, res)=>{
   try {
     const adr = await models.adr.findByPk(req.params.id)
     await adr.destroy()
-    res.status(204)
+    res.status(204).end()
   } catch (err) {
     res.status(400).send(err)
   }
