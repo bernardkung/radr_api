@@ -39,6 +39,7 @@ router.post("/new", async (req, res)=>{
 router.get("/:id", async (req, res)=>{
   try {
     const facility = await models.facility.findByPk(req.params.id)
+    // If no facility found
     if (!facility) {
       res.status(404).end()
     } else {
@@ -53,7 +54,12 @@ router.get("/:id", async (req, res)=>{
 router.get("/:id/edit", async (req, res)=>{
   try {
     const facility = await models.facility.findByPk(req.params.id)
-    res.status(200).json({facility})
+    // If no facility found
+    if (!facility) {
+      res.sendStatus(404).send("no Facility found under given ID")
+    } else {
+      res.status(200).json({ facility })
+    }
   } catch (err) {
     res.status(400).send(err)
   }
