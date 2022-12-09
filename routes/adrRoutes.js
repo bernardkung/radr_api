@@ -27,25 +27,33 @@ function calculateNetPayment(adr){
 
 // INDEX
 router.get("/", async (req, res)=>{
-  const adrs = await models.adr.findAll({
-    include: [
-      models.facility,
-      models.patient,
-      models.stage,
-    ]
-  })
-  adrs.map(adr=>console.log(adr.toJSON()))
-  res.render('adrs/index', {adrs, dayjs});
-});
+  try {  
+    const adrs = await models.adr.findAll({
+      include: [
+        models.facility,
+        models.patient,
+        models.stage,
+      ]
+    })
+    res.status(200).json({ adrs })
+  } catch (err) {
+    res.status(400).send(err)
+  }
+
+})
 
 
 // NEW
 router.get("/new", async (req, res)=>{
-  // Get ID fields from both these tables as well, and embed in form
-  const facilities  = await models.facility.findAll({attributes: ['id', 'global_id']})
-  const patients    = await models.patient.findAll({attributes: ['id', 'mrn', 'first_name', 'last_name']})
-  res.render('adrs/create', {facilities, patients});
-});
+  try {
+    // Get ID fields from both these tables as well, and embed in form
+    const facilities  = await models.facility.findAll({attributes: ['id', 'global_id']})
+    const patients    = await models.patient.findAll({attributes: ['id', 'mrn', 'first_name', 'last_name']})
+    res.status(200).json({facilities, patients})
+  } catch (err) {
+    res.status(400).send(err)
+  }
+})
 
 
 // CREATE
@@ -58,122 +66,95 @@ router.post("/new", async (req, res)=>{
       facilityId: req.body.facility.id
     }
     const adr = await models.adr.create(newAdr);
-
-    res.redirect(`/adrs/${adr.id}`);
+    res.status(204)
   } catch (err) {
     res.status(400).send(err)
   }
-});
-
-// API SHOW
-router.get("/api/:id", async (req, res)=>{
-  const adr = await models.adr.findOne({ 
-    where: { id: req.params.id }, 
-    include: [
-      {
-        model: models.stage,
-        include: [
-          {
-            model: models.submission,
-            include: [models.auditor],
-          },
-          models.decision,
-        ]
-      },
-      {
-        model: models.srn,
-        include: [models.payment],
-      },
-      models.facility,
-      models.patient,
-    ],
-  })
-
-  // Calculated Fields
-  adr.net_payment = calculateNetPayment(adr)
-  adr.current_balance = adr.expected_reimbursement_80 - adr.net_payment
-
-
-  res.end(JSON.stringify({adr}))
 })
 
 // SHOW
 router.get("/:id", async (req, res)=>{
-  const adr = await models.adr.findOne({ 
-    where: { id: req.params.id }, 
-    include: [
-      {
-        model: models.stage,
-        include: [
-          {
-            model: models.submission,
-            include: [models.auditor],
-          },
-          models.decision,
-        ]
-      },
-      {
-        model: models.srn,
-        include: [models.payment],
-      },
-      models.facility,
-      models.patient,
-    ],
-  })
-
-  // Calculated Fields
-  adr.net_payment = calculateNetPayment(adr)
-  adr.current_balance = adr.expected_reimbursement_80 - adr.net_payment
-
-  console.log(adr)
-
-  res.render('adrs/show', {
-    adr,
-    dayjs, 
-    currency,
-    prettifyString,
-  })
+  try {
+    const adr = await models.adr.findOne({ 
+      where: { id: req.params.id }, 
+      include: [
+        {
+          model: models.stage,
+          include: [
+            {
+              model: models.submission,
+              include: [models.auditor],
+            },
+            models.decision,
+          ]
+        },
+        {
+          model: models.srn,
+          include: [models.payment],
+        },
+        models.facility,
+        models.patient,
+      ],
+    })
+  
+    // Calculated Fields
+    adr.net_payment = calculateNetPayment(adr)
+    adr.current_balance = adr.expected_reimbursement_80 - adr.net_payment
+  
+    res.status(200).json({adr})
+  } catch (err) {
+    res.status(400).send(err)
+  }
 })
 
 
 // EDIT
 router.get("/:id/edit", async (req, res)=>{
-  const adr = await models.adr.findByPk(
-    req.params.id, {
-      include: [
-        models.facility,
-        models.patient,
-      ]
-    }
-  )
-  
-  const facilities  = await models.facility.findAll({attributes: ['id', 'global_id']})
-  const patients    = await models.patient.findAll({attributes: ['id', 'mrn', 'first_name', 'last_name']})
-  
-  res.render('adrs/update', {
-    adr,
-    facilities,
-    patients,
-    dayjs
-  });
-});
+  try {
+    const adr = await models.adr.findByPk(
+      req.params.id, {
+        include: [
+          models.facility,
+          models.patient,
+        ]
+      }
+    )
+    
+    const facilities  = await models.facility.findAll({attributes: ['id', 'global_id']})
+    const patients    = await models.patient.findAll({attributes: ['id', 'mrn', 'first_name', 'last_name']})
+    
+    res.status(200).json({adr, facilities, patients})
+  } catch (err) {
+    res.status(400).send(err)
+  }
+})
 
 
 // UPDATE
 router.put("/:id", async (req, res)=>{
-  const adr = await models.adr.findByPk(req.params.id)
-  adr.update(req.body.adr)
-  await adr.save()
-  res.redirect(`/adrs/${req.params.id}`);
-});
+  try {
+    const adr = await models.adr.findByPk(req.params.id)
+    adr.update(req.body.adr)
+    await adr.save()
+    res.status(204)
+  } catch (err) {
+    res.status(400).send(err)
+  }
+
+})
 
 
 // DESTROY
 router.delete("/:id", async (req, res)=>{
-  const adr = await models.adr.findByPk(req.params.id);  
-  await adr.destroy();
-  res.redirect('/adrs');
-});
+  try {
+    const adr = await models.adr.findByPk(req.params.id)
+    await adr.destroy()
+    res.status(204)
+  } catch (err) {
+    res.status(400).send(err)
+  }
+
+})
 
 
 // Export
