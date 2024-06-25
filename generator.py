@@ -55,7 +55,7 @@ def generate_auditors(fake, export=True):
 
     return auditors
 
-def generate_facilities(fake, org, export=True):
+def generate_facilities(fake, export=True):
     dlids = [fake.unique.pyint(1000, 9999) for _ in range(254)]
     facilities = []
     for dlid in dlids:
@@ -294,13 +294,10 @@ def generate_180_decisions(claims, stages, submissions, decisions, fake, paid_ra
 
 def generate_data(export=True):
   fake = Faker()
-  
-  # Read supplemental data
-  org = pd.read_csv('./org_breakdown.csv')
-  
+    
   # Generate supplemental data
   patients = generate_patients(fake, export=False)
-  facilities = generate_facilities(fake, org, export=False)
+  facilities = generate_facilities(fake, export=False)
   auditors = generate_auditors(fake, export=False)
 
 
