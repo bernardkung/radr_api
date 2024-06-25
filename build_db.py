@@ -66,7 +66,7 @@ try:
 		{'name': 'NPI', 						'type': 'INTEGER', 'len': 10},
 		{'name': 'REVENUE_CENTER', 	'type': 'TEXT', },
 	]
-	build_table('facilities', facilities_columns, data, cursor, debug=True)
+	build_table('facilities', facilities_columns, data, cursor, debug=False)
 
 	# Populate Auditors Table
 	auditors_columns = [
@@ -118,6 +118,18 @@ try:
 		{'name': 'DECISION',			'type': 'TEXT', 'clauses': 'NOT NULL'},
 	]
 	build_table('decisions', decisions_columns, data, cursor, debug=False)
+
+	srns_columns = [
+		{'name': 'SRN',			'type': 'TEXT', 'len': 12, 'clauses': 'PRIMARY KEY'},
+		{'name': 'ADR_ID',	'type': 'INTEGER', 'clauses': 'NOT NULL'},
+	]
+	build_table('srns', srns_columns, data, cursor, debug=False)
+	
+	dcns_columns = [
+		{'name': 'DCN',			'type': 'TEXT', 'len': 17, 'clauses': 'PRIMARY KEY'},
+		{'name': 'ADR_ID',	'type': 'INTEGER', 'clauses': 'NOT NULL'},
+	]
+	build_table('dcns', dcns_columns, data, cursor, debug=False)
 	
 	# SELECT FROM FACILITIES
 	# selectfacilities = ("PRAGMA table_info(stages);")

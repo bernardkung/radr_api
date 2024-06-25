@@ -12,6 +12,9 @@ import json
 # fake = Faker()
 
 
+
+################################ FUNCTIONS ################################
+    
 def randomPick(df, column, fake):
     # Returns a random value from a column/list
     if isinstance(df, pd.DataFrame):
@@ -32,6 +35,9 @@ def export_json(filename, data):
   with open(filename, 'w+', encoding='utf-8') as ofile:
       json.dump(data, ofile, indent=2, default=str)
 
+
+################################ SOURCE TABLES ################################
+    
 def generate_patients(fake, export=True):
   patients = [{
     'mrn': 900000000 + fake.unique.pyint(11111,99999), 
@@ -116,6 +122,46 @@ def generate_claims(facilities, patients, fake, total_size=10000, export=True):
         
     # Return data
     return claims
+
+
+################################ SUPPLEMENTAL ################################
+
+def generate_srns(claims, fake, export):
+    srns = [{
+        'adr_id': claim['adr_id'],
+        'srn': 'SRN' + str(fake.unique.pyint(100000000, 999999999)),
+    } for claim in claims]
+        
+    # Export data
+    if export:
+        export_json('data/srns.json', srns)
+        
+    # Return data
+    return srns
+
+def generate_dcns(claims, fake, export):
+    dcns = [{
+        'adr_id': claim['adr_id'],
+        'dcn': str(fake.unique.pyint(10000000000000, 99999999999999)) + 'DCN',
+    } for claim in claims]
+        
+    # Export data
+    if export:
+        export_json('data/dcns.json', dcns)
+        
+    # Return data
+    return dcns
+
+def generate_payments(claims, fake, export):
+    # PLACEHOLDER
+    payments = ""
+        
+    # Export data
+    if export:
+        export_json('data/payments.json', payments)
+        
+    # Return data
+    return payments
 
 ################################ 45 GENERATORS ################################
     
@@ -303,6 +349,8 @@ def generate_data(export=True):
 
   # Generate main data
   claims = generate_claims(facilities, patients, fake, export=False)
+  srns = generate_srns(claims, fake, export=False)
+  dcns = generate_dcns(claims, fake, export=False)
   stages = []
   submissions = []
   decisions = []
@@ -325,6 +373,8 @@ def generate_data(export=True):
     export_json('data/stages.json', stages)
     export_json('data/submissions.json', submissions)
     export_json('data/decisions.json', decisions)
+    export_json('data/srns.json', srns)
+    export_json('data/dcns.json', dcns)
 
     # Export Supplemental Data
     export_json('data/patients.json', patients)
@@ -336,6 +386,8 @@ def generate_data(export=True):
       'stages'      : stages,
       'submissions' : submissions,
       'decisions'   : decisions,
+      'srns'        : srns,
+      'dcns'        : dcns,
       'patients'    : patients,
       'facilities'  : facilities,
       'auditors'    : auditors,
