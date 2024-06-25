@@ -55,7 +55,7 @@ try:
 	print('DB Init')
 
 	# Generate Random Data
-	data = generator.generate_data(export=True)
+	data = generator.generate_data(export=False)
 
 	# Populate Facilities Table
 	facilities_columns = [

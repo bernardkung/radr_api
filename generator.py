@@ -29,7 +29,7 @@ def correspondingValue(df, lookupCol, lookupVal, returnCol):
                 return i[returnCol]
 
 def export_json(filename, data):
-  with open(filename, 'w', encoding='utf-8') as ofile:
+  with open(filename, 'w+', encoding='utf-8') as ofile:
       json.dump(data, ofile, indent=2, default=str)
 
 def generate_patients(fake, export=True):
