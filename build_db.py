@@ -11,14 +11,21 @@ def drop_table(table_name, cursor, debug=True):
 		print(dropquery)
 	cursor.execute(dropquery)
 
-def create_table(table_name, columns, cursor, debug=True):
+def create_table(table_name, columns, relationships, cursor, debug=True):
 	# CREATE TABLE
 	print(f"Building {table_name.upper()} table")
 	# use column dict to build query string
 	colstring = ""
 	for col in columns:
 		colstring += f"{col['name']} {col['type']} ({col['len'] if len in col.keys() else 255}) {col['clauses'] if 'clauses' in col.keys() else ''},"
-	buildquery = f"CREATE TABLE {table_name} ({colstring[0:-1]})"
+	
+	relstring = ""
+	for rel in relationships:
+		relstring += f", FOREIGN KEY({rel['fk']}) REFERENCES {rel['table']}({rel['pk']})"
+	
+	buildquery = f"CREATE TABLE {table_name} ({colstring[0:-1]} {relstring})"
+
+	print(buildquery)
 	if debug:
 		print(buildquery)
 	cursor.execute(buildquery)
@@ -38,10 +45,10 @@ def insert_table(table_name, columns, data, cursor, debug):
 		print(insertquery)
 	cursor.executemany(insertquery, data[table_name])
 
-def build_table(table_name, columns, data, cursor, debug=True):
+def build_table(table_name, columns, relations, data, cursor, debug=True):
 
 	drop_table(table_name, cursor, debug)
-	create_table(table_name, columns, cursor, debug)
+	create_table(table_name, columns, relations, cursor, debug)
 	insert_table(table_name, columns, data, cursor, debug)
 
 
@@ -65,21 +72,24 @@ try:
 		{'name': 'NPI', 						'type': 'INTEGER', 'len': 10},
 		{'name': 'REVENUE_CENTER', 	'type': 'TEXT', },
 	]
-	build_table('facilities', facilities_columns, data, cursor, debug=False)
+	facilities_relationships = []
+	build_table('facilities', facilities_columns, facilities_relationships, data, cursor, debug=False)
 
 	# Populate Auditors Table
 	auditors_columns = [
 		{'name': 'AUDITOR_ID', 			'type': 'INTEGER', 'len': 7, 'clauses': 'PRIMARY KEY'},
 		{'name': 'AUDITOR_NAME',		'type': 'TEXT'},
 	]
-	build_table('auditors', auditors_columns, data, cursor, debug=False)
+	auditors_relationships = []
+	build_table('auditors', auditors_columns, auditors_relationships, data, cursor, debug=False)
 
 	patients_columns = [
 		{'name': 'MRN',					'type': 'INTEGER', 'len': 9, 'clauses': 'PRIMARY KEY'},
 		{'name': 'FIRST_NAME',	'type': 'TEXT'},
 		{'name': 'LAST_NAME',		'type': 'TEXT'},
 	]
-	build_table('patients', patients_columns, data, cursor, debug=False)
+	patients_relationships = []
+	build_table('patients', patients_columns, patients_relationships, data, cursor, debug=False)
 
 	adrs_columns = [
 		{'name': 'ADR_ID', 									'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
@@ -91,7 +101,11 @@ try:
 		{'name': 'EXPECTED_REIMBURSEMENT',	'type': 'REAL', 'len': 8},
 		{'name': 'ACTIVE', 									'type': 'INTEGER',  'clauses': 'NOT NULL'}, # 0==False,1==True
 	]
-	build_table('adrs', adrs_columns, data, cursor, debug=False)
+	adrs_relationships = [
+		{'fk': 'GLOBAL_ID', 'table': 'FACILITIES', 'pk': 'GLOBAL_ID'},
+		{'fk': 'MRN', 'table': 'PATIENTS', 'pk': 'MRN'},
+	]
+	build_table('adrs', adrs_columns, adrs_relationships, data, cursor, debug=False)
 
 	stages_columns = [
 		{'name': 'STAGE_ID', 								'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
@@ -100,7 +114,11 @@ try:
 		{'name': 'NOTIFICATION_DATE',				'type': 'TEXT', 'clauses': 'NOT NULL'},
 		{'name': 'DUE_DATE',								'type': 'TEXT', 'clauses': 'NOT NULL'},
 	]
-	build_table('stages', stages_columns, data, cursor, debug=False)
+	stages_relationships = [
+		{'fk': 'GLOBAL_ID', 'table': 'FACILITIES', 'pk': 'GLOBAL_ID'},
+		{'fk': 'MRN', 'table': 'PATIENTS', 'pk': 'MRN'},
+	]
+	build_table('stages', stages_columns, patients_relationships, data, cursor, debug=False)
 
 	submissions_columns = [
 		{'name': 'SUBMISSION_ID',		'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
@@ -108,7 +126,7 @@ try:
 		{'name': 'SUBMISSION_DATE',	'type': 'TEXT', 'clauses': 'NOT NULL'},
 		{'name': 'AUDITOR_ID',			'type': 'INTEGER', 'clauses': 'NOT NULL'},
 	]
-	build_table('submissions', submissions_columns, data, cursor, debug=False)
+	build_table('submissions', submissions_columns, patients_relationships, data, cursor, debug=False)
 	
 	decisions_columns = [
 		{'name': 'DECISION_ID',		'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
@@ -116,19 +134,19 @@ try:
 		{'name': 'DECISION_DATE',	'type': 'TEXT', 'clauses': 'NOT NULL'},
 		{'name': 'DECISION',			'type': 'TEXT', 'clauses': 'NOT NULL'},
 	]
-	build_table('decisions', decisions_columns, data, cursor, debug=False)
+	build_table('decisions', decisions_columns, patients_relationships, data, cursor, debug=False)
 
 	srns_columns = [
 		{'name': 'SRN',			'type': 'TEXT', 'len': 12, 'clauses': 'PRIMARY KEY'},
 		{'name': 'ADR_ID',	'type': 'INTEGER', 'clauses': 'NOT NULL'},
 	]
-	build_table('srns', srns_columns, data, cursor, debug=False)
+	build_table('srns', srns_columns, patients_relationships, data, cursor, debug=False)
 	
 	dcns_columns = [
 		{'name': 'DCN',			'type': 'TEXT', 'len': 17, 'clauses': 'PRIMARY KEY'},
 		{'name': 'ADR_ID',	'type': 'INTEGER', 'clauses': 'NOT NULL'},
 	]
-	build_table('dcns', dcns_columns, data, cursor, debug=False)
+	build_table('dcns', dcns_columns, patients_relationships, data, cursor, debug=False)
 	
 	# SELECT FROM FACILITIES
 	# selectfacilities = ("PRAGMA table_info(stages);")
