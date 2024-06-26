@@ -79,12 +79,12 @@ def generate_facilities(fake, export=True):
     
     return facilities
 
-def generate_claims(facilities, patients, fake, total_size=10000, export=True):
-    claims = []
+def generate_adrs(facilities, patients, fake, total_size=10000, export=True):
+    adrs = []
     adr_id = total_size*100 + fake.unique.pyint(1,total_size*10),
-    while len(claims) < total_size:
-        ## Generate a random set of ~30 claims with the same facility
-        nClaims = round(np.random.normal(30, 1.5))
+    while len(adrs) < total_size:
+        ## Generate a random set of ~30 adrs with the same facility
+        nadrs = round(np.random.normal(30, 1.5))
         facility = randomPick(facilities, 'global_id', fake)
         # patient = randomPick(patients, 'mrn', fake)
         notification_date = fake.date_between(
@@ -95,8 +95,8 @@ def generate_claims(facilities, patients, fake, total_size=10000, export=True):
         month = notification_date - relativedelta(months=s)
         
         ## 
-        for _ in range(0, nClaims):
-            claims.append({
+        for _ in range(0, nadrs):
+            adrs.append({
                 # 'id': adr_id, ## Added afterward
                 'notification_date': notification_date,
                 'from_date': month.replace(day=1),
@@ -108,29 +108,29 @@ def generate_claims(facilities, patients, fake, total_size=10000, export=True):
                  # 'mcr_status': 'denied', ## Let's impute this from the end
             })
 
-    # Generate a unique ID for each claim
-    for claim in claims:
+    # Generate a unique ID for each adr
+    for adr in adrs:
         zeroes = math.floor(math.log(1040, 10))
         patient = randomPick(patients, 'mrn', fake)
         
-        claim['adr_id'] = pow(10, zeroes+1) + fake.unique.pyint(1, total_size*10)
-        claim['mrn'] = patient
+        adr['adr_id'] = pow(10, zeroes+1) + fake.unique.pyint(1, total_size*10)
+        adr['mrn'] = patient
         
     # Export data
     if export:
-        export_json('data/claims.json', claims)
+        export_json('data/adrs.json', adrs)
         
     # Return data
-    return claims
+    return adrs
 
 
 ################################ SUPPLEMENTAL ################################
 
-def generate_srns(claims, fake, export):
+def generate_srns(adrs, fake, export):
     srns = [{
-        'adr_id': claim['adr_id'],
+        'adr_id': adr['adr_id'],
         'srn': 'SRN' + str(fake.unique.pyint(100000000, 999999999)),
-    } for claim in claims]
+    } for adr in adrs]
         
     # Export data
     if export:
@@ -139,11 +139,11 @@ def generate_srns(claims, fake, export):
     # Return data
     return srns
 
-def generate_dcns(claims, fake, export):
+def generate_dcns(adrs, fake, export):
     dcns = [{
-        'adr_id': claim['adr_id'],
+        'adr_id': adr['adr_id'],
         'dcn': str(fake.unique.pyint(10000000000000, 99999999999999)) + 'DCN',
-    } for claim in claims]
+    } for adr in adrs]
         
     # Export data
     if export:
@@ -152,7 +152,7 @@ def generate_dcns(claims, fake, export):
     # Return data
     return dcns
 
-def generate_payments(claims, fake, export):
+def generate_payments(adrs, fake, export):
     # PLACEHOLDER
     payments = ""
         
@@ -165,23 +165,23 @@ def generate_payments(claims, fake, export):
 
 ################################ 45 GENERATORS ################################
     
-def generate_45_stages(claims, stages, submissions, decisions):
-    # 45: For each claim, generate a Stage
+def generate_45_stages(adrs, stages, submissions, decisions):
+    # 45: For each adr, generate a Stage
     nStages = len(stages)
-    for c, claim in enumerate(claims):
-        due_date = claim['notification_date'] + relativedelta(days=45)
+    for c, adr in enumerate(adrs):
+        due_date = adr['notification_date'] + relativedelta(days=45)
     #     submitted = True if datetime.date.today()>=due_date else False
     #     decided = True if submitted<=datetime.date.today()-relativedelta(days=30) else False
     #     active = True if decided else False
         stages.append({
-            'adr_id': claim['adr_id'],
+            'adr_id': adr['adr_id'],
             'stage_id': nStages + c,
             'stage': '45',
-            'notification_date': claim['notification_date'],
+            'notification_date': adr['notification_date'],
             'due_date': due_date,
         })
         
-def generate_45_submissions(claims, stages, submissions, decisions, auditors, fake):
+def generate_45_submissions(adrs, stages, submissions, decisions, auditors, fake):
     # 45 For each Stage, generate a Submission
     nSubmissions = len(submissions)
     for s, stage in enumerate(stages):
@@ -198,7 +198,7 @@ def generate_45_submissions(claims, stages, submissions, decisions, auditors, fa
                     'auditor_id': randomPick(auditors, 'auditor_id', fake)
                 })
 
-def generate_45_decisions(claims, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3):
+def generate_45_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3):
     # 45: For each Submission, generate a Decision
     nDecisions = len(decisions)
     for s, submission in enumerate(submissions):
@@ -224,7 +224,7 @@ def generate_45_decisions(claims, stages, submissions, decisions, fake, paid_rat
 
 ################################ 120 GENERATORS ################################
 
-def generate_120_stages(claims, stages, submissions, decisions):
+def generate_120_stages(adrs, stages, submissions, decisions):
     # For each 45 non-PAID IN FULL decision, generate a 120 stage
     denied = list(filter( lambda x: x['decision']!='PAID IN FULL' and x['stage']=='45', decisions ))
     nStages = len(stages)
@@ -237,7 +237,7 @@ def generate_120_stages(claims, stages, submissions, decisions):
             'due_date': decision['decision_date'] + relativedelta(days=120),
         })
         
-def generate_120_submissions(claims, stages, submissions, decisions, auditors, fake):
+def generate_120_submissions(adrs, stages, submissions, decisions, auditors, fake):
     # 120 For each Stage, generate a Submission
     nSubmissions = len(submissions)
     for s, stage in enumerate(stages):
@@ -253,7 +253,7 @@ def generate_120_submissions(claims, stages, submissions, decisions, auditors, f
                     'auditor_id': randomPick(auditors, 'auditor_id', fake)
                 })
 
-def generate_120_decisions(claims, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3):
+def generate_120_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3):
     # 120: For each Submission, generate a Decision
     nDecisions = len(decisions)
     for s, submission in enumerate(submissions):
@@ -281,7 +281,7 @@ def generate_120_decisions(claims, stages, submissions, decisions, fake, paid_ra
 
 ################################ 180 GENERATORS ################################
 
-def generate_180_stages(claims, stages, submissions, decisions):
+def generate_180_stages(adrs, stages, submissions, decisions):
     # 180
     denied = list(filter( lambda x: x['decision']!='PAID IN FULL' and x['stage']=='120', decisions ))
     nStages = len(stages)
@@ -294,7 +294,7 @@ def generate_180_stages(claims, stages, submissions, decisions):
             'due_date': decision['decision_date'] + relativedelta(days=180),
         })
         
-def generate_180_submissions(claims, stages, submissions, decisions, auditors, fake):
+def generate_180_submissions(adrs, stages, submissions, decisions, auditors, fake):
     # 180
     nSubmissions = len(submissions)
     for s, stage in enumerate(stages):
@@ -310,7 +310,7 @@ def generate_180_submissions(claims, stages, submissions, decisions, auditors, f
                     'auditor_id': randomPick(auditors, 'auditor_id', fake)
                 })
                 
-def generate_180_decisions(claims, stages, submissions, decisions, fake, paid_rate = 0.1, part_rate = 0.9):
+def generate_180_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.1, part_rate = 0.9):
     # 180
     nDecisions = len(decisions)
     for s, submission in enumerate(submissions):
@@ -348,28 +348,28 @@ def generate_data(export=True):
 
 
   # Generate main data
-  claims = generate_claims(facilities, patients, fake, export=False)
-  srns = generate_srns(claims, fake, export=False)
-  dcns = generate_dcns(claims, fake, export=False)
+  adrs = generate_adrs(facilities, patients, fake, export=False)
+  srns = generate_srns(adrs, fake, export=False)
+  dcns = generate_dcns(adrs, fake, export=False)
   stages = []
   submissions = []
   decisions = []
 
-  generate_45_stages(claims, stages, submissions, decisions)
-  generate_45_submissions(claims, stages, submissions, decisions, auditors, fake)
-  generate_45_decisions(claims, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3)
+  generate_45_stages(adrs, stages, submissions, decisions)
+  generate_45_submissions(adrs, stages, submissions, decisions, auditors, fake)
+  generate_45_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3)
 
-  generate_120_stages(claims, stages, submissions, decisions)
-  generate_120_submissions(claims, stages, submissions, decisions, auditors, fake)
-  generate_120_decisions(claims, stages, submissions, decisions, fake, paid_rate = 0.2, part_rate = 0.3)
+  generate_120_stages(adrs, stages, submissions, decisions)
+  generate_120_submissions(adrs, stages, submissions, decisions, auditors, fake)
+  generate_120_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.2, part_rate = 0.3)
 
-  generate_180_stages(claims, stages, submissions, decisions)
-  generate_180_submissions(claims, stages, submissions, decisions, auditors, fake)
-  generate_180_decisions(claims, stages, submissions, decisions, fake, paid_rate = 0.8, part_rate = 0.8)
+  generate_180_stages(adrs, stages, submissions, decisions)
+  generate_180_submissions(adrs, stages, submissions, decisions, auditors, fake)
+  generate_180_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.8, part_rate = 0.8)
 
   if export:
     # Export Main Data
-    export_json('data/claims.json', claims)
+    export_json('data/adrs.json', adrs)
     export_json('data/stages.json', stages)
     export_json('data/submissions.json', submissions)
     export_json('data/decisions.json', decisions)
@@ -382,7 +382,7 @@ def generate_data(export=True):
     export_json('data/auditors.json', auditors)
 
   return {
-      'claims'      : claims,
+      'adrs'      : adrs,
       'stages'      : stages,
       'submissions' : submissions,
       'decisions'   : decisions,
