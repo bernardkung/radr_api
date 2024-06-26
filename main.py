@@ -1,16 +1,30 @@
 from fastapi import FastAPI
-from sqlalchemy import create_engine, Column, Integer, String
-import sqlalchemy
-from sqlalchemy.orm import sessionmaker, Session
-from pydantic import BaseModel
+import sqlite3
+import json
 
 app = FastAPI()
 
-# Database setup
-DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = sqlalchemy.orm.declarative_base()
+def get_data(tablename, limit):
+  # Connect to DB and create a cursor
+  DATABASE_URL = "radr.db"
+  sqliteConnection = sqlite3.connect(DATABASE_URL)
+  cursor = sqliteConnection.cursor()
+  print('DB Init')
+
+  querystr = (f'SELECT * FROM {tablename} LIMIT {limit}')
+  res = cursor.execute(querystr).fetchall()
+
+  cursor.close()
+  sqliteConnection.close()
+  
+  keys = list(map(lambda x: x[0], cursor.description))
+  
+  data = {'data': [
+    {keys[i]: r[i] for i in range(0, len(keys))} for r in res
+  ]}
+
+  return data
+
 
 @app.get("/")
 async def root():
@@ -19,12 +33,14 @@ async def root():
 
 @app.get("/facilities")
 async def get_facilities():
-    return {"facilities": "Hello Facilities"}
+  data = get_data('facilities', 5)
+  return data
 
 
 @app.get("/patients")
 async def get_patients():
-    return {"patients": "Hello Patients"}
+    data = get_data('patients', 5)
+    return data
 
 @app.get("/auditors")
 async def get_auditors():

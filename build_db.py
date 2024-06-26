@@ -38,7 +38,6 @@ def insert_table(table_name, columns, data, cursor, debug):
 		print(insertquery)
 	cursor.executemany(insertquery, data[table_name])
 
-
 def build_table(table_name, columns, data, cursor, debug=True):
 
 	drop_table(table_name, cursor, debug)
@@ -50,7 +49,7 @@ def build_table(table_name, columns, data, cursor, debug=True):
 try:
 
 	# Connect to DB and create a cursor
-	sqliteConnection = sqlite3.connect('sql.db')
+	sqliteConnection = sqlite3.connect('radr.db')
 	cursor = sqliteConnection.cursor()
 	print('DB Init')
 
@@ -144,6 +143,7 @@ try:
 
 	# Close the cursor
 	cursor.close()
+	sqliteConnection.commit()
 
 
 
