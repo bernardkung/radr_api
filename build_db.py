@@ -91,7 +91,7 @@ try:
 		{'name': 'EXPECTED_REIMBURSEMENT',	'type': 'REAL', 'len': 8},
 		{'name': 'ACTIVE', 									'type': 'INTEGER',  'clauses': 'NOT NULL'}, # 0==False,1==True
 	]
-	build_table('patients', patients_columns, data, cursor, debug=False)
+	build_table('adrs', adrs_columns, data, cursor, debug=False)
 
 	stages_columns = [
 		{'name': 'STAGE_ID', 								'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
