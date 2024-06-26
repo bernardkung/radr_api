@@ -4,14 +4,22 @@ import json
 
 app = FastAPI()
 
-def get_data(tablename, limit):
+def get_data(tablename, where="", orderby="", groupby="", limit=0):
   # Connect to DB and create a cursor
   DATABASE_URL = "radr.db"
   sqliteConnection = sqlite3.connect(DATABASE_URL)
   cursor = sqliteConnection.cursor()
   print('DB Init')
 
-  querystr = (f'SELECT * FROM {tablename} LIMIT {limit}')
+  querystr = (f'SELECT * FROM {tablename}')
+  if where!="":
+      querystr += f' WHERE {where}'
+  if orderby!="":
+      querystr += f' ORDER BY {orderby}'
+  if groupby!="":
+      querystr += f' GROUP BY {groupby}'
+  if limit>0:
+      querystr += f' LIMIT {limit}'
   res = cursor.execute(querystr).fetchall()
 
   cursor.close()
@@ -33,33 +41,51 @@ async def root():
 
 @app.get("/facilities")
 async def get_facilities():
-  data = get_data('facilities', 5)
+  data = get_data('facilities')
   return data
 
 
 @app.get("/patients")
 async def get_patients():
-    data = get_data('patients', 5)
-    return data
+  data = get_data('patients')
+  return data
 
 @app.get("/auditors")
 async def get_auditors():
-    return {"auditors": "Hello Auditors"}
-
-
+  data = get_data('auditors')
+  return data
 
 @app.get("/adrs")
-async def get_patients():
-    return {"adrs": "Hello adrs"}
+async def get_adrs():
+  data = get_data('adrs')
+  return data
 
 @app.get("/stages")
-async def get_patients():
-    return {"stages": "Hello stages"}
+async def get_stages():
+  data = get_data('stages')
+  return data
 
 @app.get("/submissions")
-async def get_patients():
-    return {"submissions": "Hello submissions"}
+async def get_submissions():
+  data = get_data('submissions')
+  return data
 
 @app.get("/decisions")
-async def get_patients():
-    return {"decisions": "Hello decisions"}
+async def get_decisions():
+  data = get_data('decisions')
+  return data
+
+@app.get("/srns")
+async def get_srns():
+  data = get_data('srns')
+  return data
+
+@app.get("/dcns")
+async def get_dcns():
+  data = get_data('dcns')
+  return data
+
+@app.get("/payments")
+async def get_payments():
+  data = get_data('payments')
+  return data
