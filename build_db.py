@@ -63,7 +63,7 @@ try:
 	# Generate Random Data
 	data = generator.generate_data(export=False)
 
-	# Populate Facilities Table
+	## FACILTIIES
 	facilities_columns = [
 		{'name': 'GLOBAL_ID', 			'type': 'INTEGER', 'len': 6, 'clauses': 'PRIMARY KEY'},
 		{'name': 'DL_ID', 					'type': 'INTEGER', 'len': 4},
@@ -75,7 +75,7 @@ try:
 	facilities_relationships = []
 	build_table('facilities', facilities_columns, facilities_relationships, data, cursor, debug=False)
 
-	# Populate Auditors Table
+	## AUDITORS
 	auditors_columns = [
 		{'name': 'AUDITOR_ID', 			'type': 'INTEGER', 'len': 7, 'clauses': 'PRIMARY KEY'},
 		{'name': 'AUDITOR_NAME',		'type': 'TEXT'},
@@ -91,6 +91,7 @@ try:
 	patients_relationships = []
 	build_table('patients', patients_columns, patients_relationships, data, cursor, debug=False)
 
+	## ADRS
 	adrs_columns = [
 		{'name': 'ADR_ID', 									'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
 		{'name': 'GLOBAL_ID', 							'type': 'TEXT', 'clauses': 'NOT NULL'},
@@ -107,6 +108,7 @@ try:
 	]
 	build_table('adrs', adrs_columns, adrs_relationships, data, cursor, debug=False)
 
+	## STAGES
 	stages_columns = [
 		{'name': 'STAGE_ID', 								'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
 		{'name': 'ADR_ID', 									'type': 'INTEGER', 'clauses': 'NOT NULL'},
@@ -115,38 +117,53 @@ try:
 		{'name': 'DUE_DATE',								'type': 'TEXT', 'clauses': 'NOT NULL'},
 	]
 	stages_relationships = [
-		{'fk': 'GLOBAL_ID', 'table': 'FACILITIES', 'pk': 'GLOBAL_ID'},
-		{'fk': 'MRN', 'table': 'PATIENTS', 'pk': 'MRN'},
+		{'fk': 'ADR_ID', 'table': 'ADRS', 'pk': 'ADR_ID'},
 	]
-	build_table('stages', stages_columns, patients_relationships, data, cursor, debug=False)
+	build_table('stages', stages_columns, stages_relationships, data, cursor, debug=False)
 
+	## SUBMISSIONS
 	submissions_columns = [
 		{'name': 'SUBMISSION_ID',		'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
 		{'name': 'STAGE_ID',				'type': 'INTEGER', 'clauses': 'NOT NULL'},
 		{'name': 'SUBMISSION_DATE',	'type': 'TEXT', 'clauses': 'NOT NULL'},
 		{'name': 'AUDITOR_ID',			'type': 'INTEGER', 'clauses': 'NOT NULL'},
 	]
-	build_table('submissions', submissions_columns, patients_relationships, data, cursor, debug=False)
-	
+	submissions_relationships = [
+		{'fk': 'STAGE_ID', 'table': 'STAGES', 'pk': 'STAGE_ID'},
+	]
+	build_table('submissions', submissions_columns, submissions_relationships, data, cursor, debug=False)
+
+	## DECISIONS
 	decisions_columns = [
 		{'name': 'DECISION_ID',		'type': 'INTEGER', 'clauses': 'PRIMARY KEY'},
 		{'name': 'STAGE_ID',			'type': 'INTEGER', 'clauses': 'NOT NULL'},
 		{'name': 'DECISION_DATE',	'type': 'TEXT', 'clauses': 'NOT NULL'},
 		{'name': 'DECISION',			'type': 'TEXT', 'clauses': 'NOT NULL'},
 	]
-	build_table('decisions', decisions_columns, patients_relationships, data, cursor, debug=False)
+	decisions_relationships = [
+		{'fk': 'STAGE_ID', 'table': 'STAGES', 'pk': 'STAGE_ID'},
+	]
+	build_table('decisions', decisions_columns, decisions_relationships, data, cursor, debug=False)
 
+	## SRNS
 	srns_columns = [
 		{'name': 'SRN',			'type': 'TEXT', 'len': 12, 'clauses': 'PRIMARY KEY'},
 		{'name': 'ADR_ID',	'type': 'INTEGER', 'clauses': 'NOT NULL'},
 	]
-	build_table('srns', srns_columns, patients_relationships, data, cursor, debug=False)
+	srns_relationships = [
+		{'fk': 'ADR_ID', 'table': 'ADRS', 'pk': 'ADR_ID'},
+	]
+	build_table('srns', srns_columns, srns_relationships, data, cursor, debug=False)
 	
+	## DCNS
 	dcns_columns = [
 		{'name': 'DCN',			'type': 'TEXT', 'len': 17, 'clauses': 'PRIMARY KEY'},
 		{'name': 'ADR_ID',	'type': 'INTEGER', 'clauses': 'NOT NULL'},
 	]
-	build_table('dcns', dcns_columns, patients_relationships, data, cursor, debug=False)
+	dcns_relationships = [
+		{'fk': 'ADR_ID', 'table': 'ADRS', 'pk': 'ADR_ID'},
+	]
+	build_table('dcns', dcns_columns, dcns_relationships, data, cursor, debug=False)
 	
 	# SELECT FROM FACILITIES
 	# selectfacilities = ("PRAGMA table_info(stages);")
