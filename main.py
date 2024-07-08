@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import sqlite3
 import json
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, select
 from sqlalchemy.orm import Session
 
 app = FastAPI()
@@ -39,9 +39,12 @@ def get_data(tablename, where="", orderby="", groupby="", limit=0):
 
 def query_adrs(args):
   with Session(engine) as session:
-     result = session.execute(text("SELECT * FROM adrs"))
-    #  for row in result: 
-    #     print(f"{row}")
+    result = session.execute(text("SELECT * FROM adrs"))
+    data = []
+    for row in result: 
+      data.append({
+         
+      })
 
   
   data = result
