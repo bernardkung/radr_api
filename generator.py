@@ -382,15 +382,15 @@ def generate_data(export=True):
     export_json('data/auditors.json', auditors)
 
   return {
-      'adrs'      : adrs,
-      'stages'      : stages,
-      'submissions' : submissions,
-      'decisions'   : decisions,
-      'srns'        : srns,
-      'dcns'        : dcns,
-      'patients'    : patients,
-      'facilities'  : facilities,
-      'auditors'    : auditors,
+      'adr'         : adrs,
+      'stage'       : stages,
+      'submission'  : submissions,
+      'decision'    : decisions,
+      'srn'         : srns,
+      'dcn'         : dcns,
+      'patient'     : patients,
+      'facilitie'   : facilities,
+      'auditor'     : auditors,
   }
 
 
