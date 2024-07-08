@@ -389,7 +389,7 @@ def generate_data(export=True):
       'srn'         : srns,
       'dcn'         : dcns,
       'patient'     : patients,
-      'facilitie'   : facilities,
+      'facility'   : facilities,
       'auditor'     : auditors,
   }
 

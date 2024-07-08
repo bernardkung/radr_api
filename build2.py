@@ -132,3 +132,5 @@ Base.metadata.create_all(engine)
 data = generator.generate_data(export=False)
 
 # Insert into Tables
+for dk, dv in data.items():
+	print(dk)
