@@ -1,57 +1,50 @@
 from fastapi import FastAPI
 import sqlite3
 import json
-import sqlalchemy
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
 
 app = FastAPI()
 
+engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
+
 def get_data(tablename, where="", orderby="", groupby="", limit=0):
-#   # Connect to DB and create a cursor
-#   DATABASE_URL = "radr.db"
-#   sqliteConnection = sqlite3.connect(DATABASE_URL)
-#   cursor = sqliteConnection.cursor()
-#   print('DB Init')
-
-#   querystr = (f'SELECT * FROM {tablename}')
-#   if where!="":
-#       querystr += f' WHERE {where}'
-#   if orderby!="":
-#       querystr += f' ORDER BY {orderby}'
-#   if groupby!="":
-#       querystr += f' GROUP BY {groupby}'
-#   if limit>0:
-#       querystr += f' LIMIT {limit}'
-#   res = cursor.execute(querystr).fetchall()
-
-#   cursor.close()
-#   sqliteConnection.close()
-  
-#   keys = list(map(lambda x: x[0], cursor.description))
-  
-#   data = {'data': [
-#     {keys[i]: r[i] for i in range(0, len(keys))} for r in res
-#   ]}
-  data = []
-  return data
-
-def get_adrs():
   # Connect to DB and create a cursor
   DATABASE_URL = "radr.db"
   sqliteConnection = sqlite3.connect(DATABASE_URL)
   cursor = sqliteConnection.cursor()
   print('DB Init')
-  # querystr = (f'SELECT * FROM ADRS ')
-  # res = cursor.execute(querystr).fetchall()
+
+  querystr = (f'SELECT * FROM {tablename}')
+  if where!="":
+      querystr += f' WHERE {where}'
+  if orderby!="":
+      querystr += f' ORDER BY {orderby}'
+  if groupby!="":
+      querystr += f' GROUP BY {groupby}'
+  if limit>0:
+      querystr += f' LIMIT {limit}'
+  res = cursor.execute(querystr).fetchall()
 
   cursor.close()
   sqliteConnection.close()
   
-  # keys = list(map(lambda x: x[0], cursor.description))
+  keys = list(map(lambda x: x[0], cursor.description))
   
-  # data = {'data': [
-  #   {keys[i]: r[i] for i in range(0, len(keys))} for r in res
-  # ]}
-  data = []
+  data = {'data': [
+    {keys[i]: r[i] for i in range(0, len(keys))} for r in res
+  ]}
+  
+  return data
+
+def query_adrs(args):
+  with Session(engine) as session:
+     result = session.execute(text("SELECT * FROM adrs"))
+    #  for row in result: 
+    #     print(f"{row}")
+
+  
+  data = result
   return data
 
 
@@ -78,7 +71,7 @@ async def get_auditors():
 
 @app.get("/adrs")
 async def get_adrs():
-  data = get_adrs()
+  data = query_adrs('adrs')
   return data
 
 @app.get("/stages")
