@@ -6,14 +6,6 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Session
 import generator
 from Classes import *
-# from Classes import Patient
-# from Classes import Auditor
-# from Classes import Adr
-# from Classes import Stage
-# from Classes import Submission
-# from Classes import Decision
-# from Classes import Srn
-# from Classes import Dcn
 
 tables = {
 			'facility'   	: Facility,
@@ -50,6 +42,7 @@ def main():
 				insert(tables[table_name]),
 				data[table_name],
 			)
+			session.commit()
 			
 
 if __name__ == "__main__":

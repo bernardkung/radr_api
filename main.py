@@ -31,7 +31,6 @@ def get_data(tablename, where="", orderby="", groupby="", limit=0):
   sqliteConnection.close()
   
   keys = list(map(lambda x: x[0], cursor.description))
-  print(res)
   
   data = {'data': [
     {keys[i]: r[i] for i in range(0, len(keys))} for r in res
@@ -44,15 +43,13 @@ def query_adrs(args):
     # stmt = text("SELECT * FROM adr")
     stmt = select(Adr)
     result = session.execute(stmt)
-    print("R:", result)
+    # print("R:", result.fetchall())
+    for row in result.all():
+       print("r:", row.Adr)
 
-    data = []
-    for row in result:
-       data.append(f"adr_id: {row.adr_id}")
-
+    # data = [{"row":row} for row in result.all()]
     
-    data
-    return data
+    return {'data': 'x' }
 
 
 @app.get("/")
