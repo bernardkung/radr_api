@@ -15,12 +15,26 @@ from Classes import *
 # from Classes import Srn
 # from Classes import Dcn
 
+tables = {
+			'facility'   	: Facility,
+			'patient'     : Patient,
+			'auditor'     : Auditor,
+			'adr'         : Adr,
+			'stage'       : Stage,
+			'submission'  : Submission,
+			'decision'    : Decision,
+			'srn'         : Srn,
+			'dcn'         : Dcn,
+	}
 
 def main():
 	# CONNECTION
 	print("CONNECTING DATABASE")
 	engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
+	# Build Tables
+	print("BUILDING TABLES")
+	Base.metadata.create_all(engine)
 
 	# Generate Random Data
 	print("GENERATING DATA")
@@ -28,17 +42,6 @@ def main():
 
 
 	# Insert into Tables
-	tables = {
-				'facility'   	: Facility,
-				'patient'     : Patient,
-				'auditor'     : Auditor,
-				'adr'         : Adr,
-				'stage'       : Stage,
-				'submission'  : Submission,
-				'decision'    : Decision,
-				'srn'         : Srn,
-				'dcn'         : Dcn,
-		}
 
 	with Session(engine) as session:
 		for table_name in tables.keys():

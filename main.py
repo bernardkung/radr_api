@@ -3,6 +3,7 @@ import sqlite3
 import json
 from sqlalchemy import create_engine, text, select
 from sqlalchemy.orm import Session
+from Classes import *
 
 app = FastAPI()
 
@@ -39,16 +40,15 @@ def get_data(tablename, where="", orderby="", groupby="", limit=0):
 
 def query_adrs(args):
   with Session(engine) as session:
-    result = session.execute(text("SELECT * FROM adrs"))
-    data = []
-    for row in result: 
-      data.append({
-         
-      })
+    # stmt = text("SELECT * FROM adr")
+    stmt = select(Adr)
+    result = session.execute(stmt)
+    # data = [row.as_dict() for row in result]
+    
 
-  
-  data = result
-  return data
+    
+    data = result
+    return data
 
 
 @app.get("/")
@@ -58,51 +58,51 @@ async def root():
 
 @app.get("/facilities")
 async def get_facilities():
-  data = get_data('facilities')
+  data = get_data('facility')
   return data
 
 
 @app.get("/patients")
 async def get_patients():
-  data = get_data('patients')
+  data = get_data('patient')
   return data
 
 @app.get("/auditors")
 async def get_auditors():
-  data = get_data('auditors')
+  data = get_data('auditor')
   return data
 
 @app.get("/adrs")
 async def get_adrs():
-  data = query_adrs('adrs')
+  data = query_adrs('adr')
   return data
 
 @app.get("/stages")
 async def get_stages():
-  data = get_data('stages')
+  data = get_data('stage')
   return data
 
 @app.get("/submissions")
 async def get_submissions():
-  data = get_data('submissions')
+  data = get_data('submission')
   return data
 
 @app.get("/decisions")
 async def get_decisions():
-  data = get_data('decisions')
+  data = get_data('decision')
   return data
 
 @app.get("/srns")
 async def get_srns():
-  data = get_data('srns')
+  data = get_data('srn')
   return data
 
 @app.get("/dcns")
 async def get_dcns():
-  data = get_data('dcns')
+  data = get_data('dcn')
   return data
 
 @app.get("/payments")
 async def get_payments():
-  data = get_data('payments')
+  data = get_data('payment')
   return data
