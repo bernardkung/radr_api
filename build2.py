@@ -5,19 +5,24 @@ from typing import List
 from typing import Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
+from sqlalchemy import insert
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+
 import datetime
 
 # CONNECTION
+print("CONNECTING DATABASE")
 engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
 
 # DEFINING TABLES
+print("DEFINING TABLES")
 class Base(DeclarativeBase):
 	pass
 
@@ -32,6 +37,7 @@ class Facility(Base):
 	revenue_center: Mapped[str]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+	adrs: Mapped[List["Adr"]] = relationship(back_populates="facility")
 
 	def __repr__(self) -> str:
 			return f"Facility(global_id={self.global_id!r}, dl_id={self.dl_id!r}, dl_name={self.dl_name!r}), mac={self.mac!r}), npi={self.npi!r}), revenue_center={self.revenue_center!r})"
@@ -44,6 +50,7 @@ class Auditor(Base):
 	auditor_name: Mapped[str]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+	submissions: Mapped[List["Submission"]] = relationship(back_populates="auditor")
 
 
 class Patient(Base):
@@ -54,40 +61,57 @@ class Patient(Base):
 	last_name: Mapped[str]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+	adrs: Mapped[List["Adr"]] = relationship(back_populates="patient")
 
 
 class Adr(Base):
 	__tablename__ = "adr"
 
 	adr_id: Mapped[int] = mapped_column(primary_key=True)
-	global_id: Mapped[Facility] = relationship()
-	mrn: Mapped[Patient] = relationship()
+
+	global_id = mapped_column(ForeignKey("facility.global_id"))
+	facility: Mapped[Facility] = relationship(back_populates="adrs")  
+
+	mrn = mapped_column(ForeignKey("patient.mrn"))
+	patient: Mapped[Patient] = relationship(back_populates="adrs")
+
 	from_date: Mapped[datetime.date]
 	to_date: Mapped[datetime.date]
 	expected_reimbursement: Mapped[float]
 	active: Mapped[bool]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+	stages: Mapped[List["Stage"]] = relationship(back_populates="adr")
+	srns: Mapped[List["Srn"]] = relationship(back_populates="adr")
+	dcns: Mapped[List["Dcn"]] = relationship(back_populates="adr")
 	
 
 class Stage(Base):
-	__tablename__ = "table"
+	__tablename__ = "stage"
 
 	stage_id: Mapped[int] = mapped_column(primary_key=True)
-	adr_id: Mapped[Adr] = relationship()
+	adr_id = mapped_column(ForeignKey("adr.adr_id"))
+	adr: Mapped[Adr] = relationship(back_populates="stages")
 	stage: Mapped[str]
 	notification_date: Mapped[datetime.date]
 	due_date: Mapped[datetime.date]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+	submissions: Mapped[List["Submission"]] = relationship(back_populates="stage")
+	decisions: Mapped[List["Decision"]] = relationship(back_populates="stage")
 	
 
 class Submission(Base):
 	__tablename__ = "submission"
 
 	submission_id: Mapped[int] = mapped_column(primary_key=True)
-	stage_id: Mapped[Stage] = relationship()
-	auditor_id: Mapped[Auditor] = relationship()
+
+	stage_id = mapped_column(ForeignKey("stage.stage_id"))
+	stage: Mapped[Stage] = relationship(back_populates="submissions")
+
+	auditor_id = mapped_column(ForeignKey("auditor.auditor_id"))
+	auditor: Mapped[Auditor] = relationship(back_populates="submissions")
+
 	submission_date: Mapped[datetime.date]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
@@ -97,7 +121,8 @@ class Decision(Base):
 	__tablename__ = "decision"
 
 	decision_id: Mapped[int] = mapped_column(primary_key=True)
-	stage_id: Mapped[Stage] = relationship()
+	stage_id = mapped_column(ForeignKey("stage.stage_id"))
+	stage: Mapped[Stage] = relationship(back_populates="decisions")
 	decision_date: Mapped[datetime.date]
 	decision: Mapped[str]
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
@@ -108,7 +133,8 @@ class Srn(Base):
 	__tablename__ = "srn"
 
 	srn: Mapped[str] = mapped_column(primary_key=True)
-	adr_id: Mapped[Stage] = relationship()
+	adr_id = mapped_column(ForeignKey("adr.adr_id"))
+	adr: Mapped[Adr] = relationship(back_populates="srns")
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	
@@ -117,7 +143,8 @@ class Dcn(Base):
 	__tablename__ = "dcn"
 
 	dcn: Mapped[str] = mapped_column(primary_key=True)
-	adr_id: Mapped[Stage] = relationship()
+	adr_id = mapped_column(ForeignKey("adr.adr_id"))
+	adr: Mapped[Adr] = relationship(back_populates="dcns")
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	
@@ -125,12 +152,32 @@ class Dcn(Base):
 
 
 # Build Tables
+print("BUILDING TABLES")
 Base.metadata.create_all(engine)
 
-
 # Generate Random Data
+print("GENERATING DATA")
 data = generator.generate_data(export=False)
 
 # Insert into Tables
-for dk, dv in data.items():
-	print(dk)
+tables = {
+      'facility'   	: Facility,
+      'patient'     : Patient,
+      'auditor'     : Auditor,
+      'adr'         : Adr,
+      'stage'       : Stage,
+      'submission'  : Submission,
+      'decision'    : Decision,
+      'srn'         : Srn,
+      'dcn'         : Dcn,
+  }
+
+with Session(engine) as session:
+	for table_name in tables.keys():
+		print(f"Inserting into {table_name} table")
+		session.execute(
+			insert(tables[table_name]),
+			data[table_name],
+		)
+for datum in data['facility'][0:3]:
+	print(datum)
