@@ -1,28 +1,20 @@
 # from sqlalchemy import MetaData, Table, Column, Integer, Float, String, Date, Boolean, ForeignKey, create_engine, insert
-from sqlalchemy import create_engine, DateTime
-import generator
+from sqlalchemy import create_engine
+from sqlalchemy import DateTime
 from typing import List
 from typing import Optional
 from sqlalchemy import ForeignKey
-from sqlalchemy import String
-from sqlalchemy import insert
-from sqlalchemy.orm import Session
+# from sqlalchemy import String
+# from sqlalchemy import insert
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-
 import datetime
 
-# CONNECTION
-print("CONNECTING DATABASE")
-engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
 
-# DEFINING TABLES
-print("DEFINING TABLES")
 class Base(DeclarativeBase):
 	pass
 
@@ -149,35 +141,14 @@ class Dcn(Base):
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	
 
+def main():
+	# CONNECTION
+	print("CONNECTING DATABASE")
+	engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
+	# Build Tables
+	print("BUILDING TABLES")
+	Base.metadata.create_all(engine)
 
-# Build Tables
-print("BUILDING TABLES")
-Base.metadata.create_all(engine)
-
-# Generate Random Data
-print("GENERATING DATA")
-data = generator.generate_data(export=False)
-
-# Insert into Tables
-tables = {
-      'facility'   	: Facility,
-      'patient'     : Patient,
-      'auditor'     : Auditor,
-      'adr'         : Adr,
-      'stage'       : Stage,
-      'submission'  : Submission,
-      'decision'    : Decision,
-      'srn'         : Srn,
-      'dcn'         : Dcn,
-  }
-
-with Session(engine) as session:
-	for table_name in tables.keys():
-		print(f"Inserting into {table_name} table")
-		session.execute(
-			insert(tables[table_name]),
-			data[table_name],
-		)
-for datum in data['facility'][0:3]:
-	print(datum)
+if __name__ == "__main__":
+	main()
