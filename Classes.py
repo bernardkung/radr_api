@@ -16,7 +16,8 @@ import datetime
 
 
 class Base(DeclarativeBase):
-	pass
+	def as_dict(self):
+		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class Facility(Base):
 	__tablename__ = "facility"

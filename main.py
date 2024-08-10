@@ -38,19 +38,29 @@ def get_data(tablename, where="", orderby="", groupby="", limit=0):
   
   return data
 
-def query_adrs(args):
+
+def query(table_name):
+  tables = {
+    "Facility": Facility,
+    "Auditor": Auditor,
+    "Patient": Patient,
+    "Adr": Adr,
+    "Stage": Stage,
+    "Submission": Submission,
+    "Decision": Decision,
+    "Srn": Srn,
+    "Dcn": Dcn,
+  }
   with Session(engine) as session:
-    # stmt = text("SELECT * FROM adr")
-    stmt = select(Adr)
+    stmt = select(tables[table_name])
     result = session.execute(stmt)
-    # print("R:", result.fetchall())
-    for row in result.all():
-       print("r:", row.Adr)
-
-    # data = [{"row":row} for row in result.all()]
     
-    return {'data': 'x' }
-
+    data = []
+    for row in result.all():
+      data.append(row._mapping[table_name].as_dict())
+    
+    return {'data': data }
+   
 
 @app.get("/")
 async def root():
@@ -59,51 +69,51 @@ async def root():
 
 @app.get("/facilities")
 async def get_facilities():
-  data = get_data('facility')
+  data = query('Facility')
   return data
 
 
 @app.get("/patients")
 async def get_patients():
-  data = get_data('patient')
+  data = query('Patient')
   return data
 
 @app.get("/auditors")
 async def get_auditors():
-  data = get_data('auditor')
+  data = query('Auditor')
   return data
 
 @app.get("/adrs")
 async def get_adrs():
-  data = query_adrs('adr')
+  data = query('Adr')
   return data
 
 @app.get("/stages")
 async def get_stages():
-  data = get_data('stage')
+  data = query('Stage')
   return data
 
 @app.get("/submissions")
 async def get_submissions():
-  data = get_data('submission')
+  data = query('Submission')
   return data
 
 @app.get("/decisions")
 async def get_decisions():
-  data = get_data('decision')
+  data = query('Decision')
   return data
 
 @app.get("/srns")
 async def get_srns():
-  data = get_data('srn')
+  data = query('Srn')
   return data
 
 @app.get("/dcns")
 async def get_dcns():
-  data = get_data('dcn')
+  data = query('Dcn')
   return data
 
 @app.get("/payments")
 async def get_payments():
-  data = get_data('payment')
+  data = query('Payment')
   return data
