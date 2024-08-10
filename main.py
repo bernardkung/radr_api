@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 import json
 from sqlalchemy import create_engine, text, select
@@ -6,6 +7,18 @@ from sqlalchemy.orm import Session
 from Classes import *
 
 app = FastAPI()
+
+origins = [
+  "*"
+]
+
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=origins,
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
+)
 
 engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
