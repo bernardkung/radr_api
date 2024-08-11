@@ -8,6 +8,8 @@ from Classes import *
 
 app = FastAPI()
 
+
+## Engine configuration
 origins = [
   "*"
 ]
@@ -22,6 +24,22 @@ app.add_middleware(
 
 engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
+
+## Extra Configuration
+tables = {
+  "Facility": Facility,
+  "Auditor": Auditor,
+  "Patient": Patient,
+  "Adr": Adr,
+  "Stage": Stage,
+  "Submission": Submission,
+  "Decision": Decision,
+  "Srn": Srn,
+  "Dcn": Dcn,
+}
+
+
+## Function Definition
 def get_data(tablename, where="", orderby="", groupby="", limit=0):
   # Connect to DB and create a cursor
   DATABASE_URL = "radr.db"
@@ -53,17 +71,7 @@ def get_data(tablename, where="", orderby="", groupby="", limit=0):
 
 
 def query(table_name):
-  tables = {
-    "Facility": Facility,
-    "Auditor": Auditor,
-    "Patient": Patient,
-    "Adr": Adr,
-    "Stage": Stage,
-    "Submission": Submission,
-    "Decision": Decision,
-    "Srn": Srn,
-    "Dcn": Dcn,
-  }
+
   with Session(engine) as session:
     stmt = select(tables[table_name])
     result = session.execute(stmt)
@@ -73,7 +81,30 @@ def query(table_name):
       data.append(row._mapping[table_name].as_dict())
     
     return {'data': data }
-   
+  
+def full_query(args):
+   with Session(engine) as session:
+      stmt = (
+        select(Adr)
+        .join(Adr.facility)
+        .join(Adr.patient)
+        .join(Adr.stages)
+          .join(Stage.submissions)
+            .join(Submission.auditor)
+          .join(Stage.decisions)
+        .join(Adr.srns)
+          # .join(Srn.payments)
+        .join(Adr.dcns)
+
+      )
+      result = session.execute(stmt)
+
+      data = []
+      for row in result.all():
+        data.append(row._mapping[Adr].as_dict())
+      
+      return {'data': data }
+
 
 @app.get("/")
 async def root():
@@ -99,6 +130,11 @@ async def get_auditors():
 @app.get("/adrs")
 async def get_adrs():
   data = query('Adr')
+  return data
+
+@app.get("/dashboard")
+async def get_adrs():
+  data = full_query('Adr')
   return data
 
 @app.get("/stages")
