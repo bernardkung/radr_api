@@ -128,14 +128,26 @@ def full_query(args):
    
 def dashboard_query(args):
   with Session(engine) as session:
+    ## Count of ADRs
+    # stmt = (
+    #   select(func.count("*")).select_from(Adr)
+    # )    
+    
+    ## Count by Stage
     stmt = (
       select(Stage.stage, func.count("*"))
-      # select(func.count("*")).select_from(Adr)
         .select_from(Adr)
         .join(Adr.stages)
         .group_by(Stage.stage)
     )    
     
+    ## Count by Stage
+    stmt = (
+      select(Stage.stage, func.count("*"))
+        .select_from(Adr)
+        .join(Adr.stages)
+        .group_by(Stage.stage)
+    )    
     result = session.execute(stmt)
     print(" Result:", result.all())
   return 
