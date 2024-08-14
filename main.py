@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 import json
-from sqlalchemy import create_engine, text, select
+from sqlalchemy import create_engine, text, select, func
 from sqlalchemy.orm import Session
 from Classes import *
 
@@ -85,7 +85,15 @@ def query(table_name):
 def full_query(args):
    with Session(engine) as session:
       stmt = (
-        select(Adr)
+        select(
+          Adr, 
+          Facility, 
+          Stage, 
+          Submission, 
+          Decision,
+          Srn,
+          Dcn,
+        )
         .join(Adr.facility)
         .join(Adr.patient)
         .join(Adr.stages)
@@ -95,17 +103,46 @@ def full_query(args):
         .join(Adr.srns)
           # .join(Srn.payments)
         .join(Adr.dcns)
+        # .filter(Stage.stage=="180")
+        .where(Adr.adr_id==10147)
+        # .order_by(Adr.adr_id, Stage.stage.desc())
 
       )
       result = session.execute(stmt)
-
+      # print(result.all())
       data = []
       for row in result.all():
-        data.append(row._mapping[Adr].as_dict())
+        # print(row._mapping[Adr].as_dict())
+        # print(row._mapping[Facility].as_dict())
+        # print(row._mapping[Stage].as_dict())
+        # print(row)
+        data.append({
+          'adr': row._mapping[Adr].as_dict(),
+          'facility': row._mapping[Facility].as_dict(),
+          'stage': row._mapping[Stage].as_dict(),
+          'srn': row._mapping[Srn].as_dict(),
+        })
+
       
       return {'data': data }
+   
+def dashboard_query(args):
+  with Session(engine) as session:
+    stmt = (
+      select(Stage.stage, func.count("*"))
+      # select(func.count("*")).select_from(Adr)
+        .select_from(Adr)
+        .join(Adr.stages)
+        .group_by(Stage.stage)
+    )    
+    
+    result = session.execute(stmt)
+    print(" Result:", result.all())
+  return 
 
 
+
+## Routes
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -132,9 +169,14 @@ async def get_adrs():
   data = query('Adr')
   return data
 
-@app.get("/dashboard")
-async def get_adrs():
+@app.get("/full_query")
+async def full_route():
   data = full_query('Adr')
+  return data
+
+@app.get("/dashboard")
+async def dash_route():
+  data = dashboard_query('Adr')
   return data
 
 @app.get("/stages")

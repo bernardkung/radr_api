@@ -18,6 +18,11 @@ import datetime
 class Base(DeclarativeBase):
 	def as_dict(self):
 		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+	
+	# def json(self):
+	# 	return {
+	# 		"order_lines": [line.json() for line in self.order_lines]
+	# 	}
 
 class Facility(Base):
 	__tablename__ = "facility"
@@ -32,8 +37,8 @@ class Facility(Base):
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	adrs: Mapped[List["Adr"]] = relationship(back_populates="facility")
 
-	def __repr__(self) -> str:
-			return f"Facility(global_id={self.global_id!r}, dl_id={self.dl_id!r}, dl_name={self.dl_name!r}), mac={self.mac!r}), npi={self.npi!r}), revenue_center={self.revenue_center!r})"
+	# def __repr__(self) -> str:
+	# 		return f"Facility(global_id={self.global_id!r}, dl_id={self.dl_id!r}, dl_name={self.dl_name!r}), mac={self.mac!r}), npi={self.npi!r}), revenue_center={self.revenue_center!r})"
 
 
 class Auditor(Base):
