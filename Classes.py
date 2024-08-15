@@ -152,7 +152,8 @@ class Payment(Base):
 	payment_id: Mapped[int] = mapped_column(primary_key=True)
 	srn_id = mapped_column(ForeignKey("srn.srn_id"))
 	srn: Mapped[Srn] = relationship(back_populates="srns")
-	payment_amount: 
+	payment_amount: Mapped[float]
+	payment_date: Mapped[datetime.datetime]
 	
 
 def main():
