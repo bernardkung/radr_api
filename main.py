@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 import json
+import pandas as pd
 from sqlalchemy import create_engine, text, select, func
 from sqlalchemy.orm import Session
 from Classes import *
@@ -128,28 +129,48 @@ def full_query(args):
    
 def dashboard_query(args):
   with Session(engine) as session:
-    ## Count of ADRs
-    # stmt = (
-    #   select(func.count("*")).select_from(Adr)
-    # )    
+    adrs_stmt = (
+      select(Adr, Facility, Patient)
+      .join(Adr.facility)
+      .join(Adr.patient)
+    )
+    # stages_stmt = (
+    #   select(Stage)
+    #   .join(Stage.adr)
+    # )
+    # submissions_stmt = (
+    #   select(Submission, Stage.adr_id)
+    #   .join(Submission.stage)
+    # )
+    # decisions_stmt = (
+    #   select(Decision, Stage.adr_id)
+    #   .join(Decision.stage)
+    # )
+
+    adrs_result = session.execute(adrs_stmt)
+    # stages_result = session.execute(stages_stmt)
+    # submissions_result = session.execute(submissions_stmt)
+    # decisions_result = session.execute(decisions_stmt)
     
-    ## Count by Stage
-    stmt = (
-      select(Stage.stage, func.count("*"))
-        .select_from(Adr)
-        .join(Adr.stages)
-        .group_by(Stage.stage)
-    )    
+    def row_unpack(row):
+      row_dict = {}
+      # {k:v for tuple in row.tuple() for k, v in tuple.as_dict().items()}
+      for tuple in row.tuple():
+        for k, v in tuple.as_dict().items():
+          row_dict[k] = v
+      return row_dict
     
-    ## Count by Stage
-    stmt = (
-      select(Stage.stage, func.count("*"))
-        .select_from(Adr)
-        .join(Adr.stages)
-        .group_by(Stage.stage)
-    )    
-    result = session.execute(stmt)
-    print(" Result:", result.all())
+    data = []
+    for row in adrs_result.all():
+      row_dict = row_unpack(row)
+
+      data.append(row_dict)
+
+    # df = pd.DataFrame(data)
+    # print(df.head())
+
+    return { 'data': data }
+
   return 
 
 
