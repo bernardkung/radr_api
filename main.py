@@ -134,35 +134,46 @@ def dashboard_query(args):
       .join(Adr.facility)
       .join(Adr.patient)
     )
-    # stages_stmt = (
-    #   select(Stage)
-    #   .join(Stage.adr)
-    # )
-    # submissions_stmt = (
-    #   select(Submission, Stage.adr_id)
-    #   .join(Submission.stage)
-    # )
-    # decisions_stmt = (
-    #   select(Decision, Stage.adr_id)
-    #   .join(Decision.stage)
-    # )
+    stages_stmt = (
+      select(Stage)
+      .join(Stage.adr)
+    )
+    submissions_stmt = (
+      select(Submission, Stage.adr_id)
+      .join(Submission.stage)
+    )
+    decisions_stmt = (
+      select(Decision, Stage.adr_id)
+      .join(Decision.stage)
+    )
 
-    adrs_result = session.execute(adrs_stmt)
-    # stages_result = session.execute(stages_stmt)
-    # submissions_result = session.execute(submissions_stmt)
-    # decisions_result = session.execute(decisions_stmt)
-    
+    stmts = {
+      "adrs": adrs_stmt, 
+      "stages": stages_stmt, 
+      "submissions": submissions_stmt, 
+      "decisions": decisions_stmt,
+    }
+
+    results = { key:session.execute(stmt) for key, stmt in stmts.items() }
+
     def row_unpack(row):
       return {k:v for tuple in row.tuple() for k, v in tuple.as_dict().items()}
-    
-    data = []
-    for row in adrs_result.all():
-      row_dict = row_unpack(row)
-
-      data.append(row_dict)
-
-    # df = pd.DataFrame(data)
-    # print(df.head())
+      
+    def processor(key, result):
+      data = []
+      for row in result.all():
+        if key in ['adrs']:
+          row_dict = row_unpack(row)
+        elif key in ['decisions', 'submissions']:
+          row_dict = {'adr_id': row[1], **row[0].as_dict()}
+        elif key in ['stages']:
+          row_dict = row._asdict()['Stage']
+        data.append( row_dict ) 
+      return data
+  
+    data = {}
+    for key, result in results.items():
+      data[key]=processor(key, result)
 
     return { 'data': data }
 
