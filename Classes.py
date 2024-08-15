@@ -133,6 +133,7 @@ class Srn(Base):
 	srn_id: Mapped[str] = mapped_column(primary_key=True)
 	adr_id = mapped_column(ForeignKey("adr.adr_id"))
 	adr: Mapped[Adr] = relationship(back_populates="srns")
+	payments: Mapped[List["Payment"]] = relationship(back_populates="srn")
 	created_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	updated_date: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
 	
@@ -151,7 +152,7 @@ class Payment(Base):
 
 	payment_id: Mapped[int] = mapped_column(primary_key=True)
 	srn_id = mapped_column(ForeignKey("srn.srn_id"))
-	srn: Mapped[Srn] = relationship(back_populates="srns")
+	srn: Mapped[Srn] = relationship(back_populates="payments")
 	payment_amount: Mapped[float]
 	payment_date: Mapped[datetime.datetime]
 	
