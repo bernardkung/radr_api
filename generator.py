@@ -129,7 +129,7 @@ def generate_adrs(facilities, patients, fake, total_size=10000, export=True):
 def generate_srns(adrs, fake, export):
     srns = [{
         'adr_id': adr['adr_id'],
-        'srn': 'SRN' + str(fake.unique.pyint(100000000, 999999999)),
+        'srn_id': 'SRN' + str(fake.unique.pyint(100000000, 999999999)),
     } for adr in adrs]
         
     # Export data
