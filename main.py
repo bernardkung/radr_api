@@ -153,12 +153,7 @@ def dashboard_query(args):
     # decisions_result = session.execute(decisions_stmt)
     
     def row_unpack(row):
-      row_dict = {}
-      # {k:v for tuple in row.tuple() for k, v in tuple.as_dict().items()}
-      for tuple in row.tuple():
-        for k, v in tuple.as_dict().items():
-          row_dict[k] = v
-      return row_dict
+      return {k:v for tuple in row.tuple() for k, v in tuple.as_dict().items()}
     
     data = []
     for row in adrs_result.all():
