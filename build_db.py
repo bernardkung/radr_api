@@ -17,6 +17,7 @@ tables = {
 			'decision'    : Decision,
 			'srn'         : Srn,
 			'dcn'         : Dcn,
+			'payment'			: Payment,
 	}
 
 def main():
