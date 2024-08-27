@@ -8,6 +8,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import csv
 import json
+from functools import reduce
 
 # fake = Faker()
 
@@ -125,11 +126,13 @@ def generate_adrs(facilities, patients, fake, total_size=10000, export=True):
 
 
 ################################ SUPPLEMENTAL ################################
+def generate_srn(fake):
+    return 'SRN' + str(fake.unique.pyint(100000000, 999999999))
 
 def generate_srns(adrs, fake, export):
     srns = [{
         'adr_id': adr['adr_id'],
-        'srn_id': 'SRN' + str(fake.unique.pyint(100000000, 999999999)),
+        'srn_id': generate_srn(fake),
     } for adr in adrs]
         
     # Export data
@@ -139,10 +142,13 @@ def generate_srns(adrs, fake, export):
     # Return data
     return srns
 
+def generate_dcn(fake):
+    return str(fake.unique.pyint(10000000000000, 99999999999999)) + 'DCN'
+
 def generate_dcns(adrs, fake, export):
     dcns = [{
         'adr_id': adr['adr_id'],
-        'dcn': str(fake.unique.pyint(10000000000000, 99999999999999)) + 'DCN',
+        'dcn': generate_dcn(fake),
     } for adr in adrs]
         
     # Export data
@@ -152,16 +158,46 @@ def generate_dcns(adrs, fake, export):
     # Return data
     return dcns
 
-def generate_payments(adrs, fake, export):
-    # PLACEHOLDER
-    payments = ""
+def find_adr(adrs, adr_id):
+    return [adr for adr in adrs if adr['adr_id']==adr_id][0]
+
+def find_srn(srns, adr_id):
+    return [srn for srn in srns if srn['adr_id']==adr_id][0]
+
+def generate_payment(adrs, srns, adr_id, submission_date, amount=None, loc=1, scale=0.05):
+    ## Generate Payment Amount
+    if amount==None:
+        adr = find_adr(adrs, adr_id)
+        amount_scaler = min(
+            np.random.normal( loc=loc, scale=scale ),
+            loc-scale*3
+        )
+        amount = round(amount_scaler * adr['expected_reimbursement'], 2)
         
-    # Export data
-    if export:
-        export_json('data/payments.json', payments)
-        
-    # Return data
-    return payments
+            
+    ## Generate Payment Date
+    date_scaler = np.random.randint(1, 10)
+    date = submission_date + relativedelta(days=date_scaler)
+    
+    srn = find_srn(srns, adr_id)
+    
+    return {
+        'srn_id': srn['srn_id'],
+        'payment_amount': amount,
+        'payment_date': date,
+    }
+
+def get_total_payments(srns, payments, adr_id):
+    # Find all SRNs
+    srn_ids = [srn['srn_id'] for srn in srns if srn['adr_id']==adr_id]
+    
+    # Sum payments
+    total_payment = reduce(
+        lambda a,b: a + b, 
+        [payment['payment_amount'] for payment in payments if payment['srn_id'] in srn_ids]
+    )
+    
+    return total_payment
 
 ################################ 45 GENERATORS ################################
     
@@ -198,7 +234,7 @@ def generate_45_submissions(adrs, stages, submissions, decisions, auditors, fake
                     'auditor_id': randomPick(auditors, 'auditor_id', fake)
                 })
 
-def generate_45_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3):
+def generate_45_decisions_and_payments(adrs, srns, stages, submissions, decisions, payments, fake, paid_rate = 0.9, part_rate = 0.3):
     # 45: For each Submission, generate a Decision
     nDecisions = len(decisions)
     for s, submission in enumerate(submissions):
@@ -207,11 +243,21 @@ def generate_45_decisions(adrs, stages, submissions, decisions, fake, paid_rate 
             # Generate random decision
             if random.random() <= paid_rate:
                 decision = 'PAID IN FULL'
+                payment = generate_payment( 
+                    adrs, srns, submission['adr_id'], submission['submission_date'], loc=1, scale=0.05,
+                )
             elif random.random() <= part_rate:
                 decision = 'PARTIALLY DENIED'
+                payment = generate_payment( 
+                    adrs, srns, submission['adr_id'], submission['submission_date'], loc=0.6, scale=0.1 
+                    )
             else:
                 decision = 'DENIED'
+                payment = generate_payment( 
+                    adrs, srns, submission['adr_id'], submission['submission_date'], amount=0 
+                )
 
+                
             decisions.append({
                 'adr_id': submission['adr_id'],
                 'stage_id': submission['stage_id'],
@@ -221,6 +267,8 @@ def generate_45_decisions(adrs, stages, submissions, decisions, fake, paid_rate 
                 'decision': decision,
                 'decision_date': submission['submission_date'] + relativedelta(days=15+fake.pyint(-2, 2))
             })
+            
+            payments.append(payment)
 
 ################################ 120 GENERATORS ################################
 
@@ -253,7 +301,7 @@ def generate_120_submissions(adrs, stages, submissions, decisions, auditors, fak
                     'auditor_id': randomPick(auditors, 'auditor_id', fake)
                 })
 
-def generate_120_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3):
+def generate_120_decisions_and_payments(adrs, srns, stages, submissions, decisions, payments, fake, paid_rate = 0.9, part_rate = 0.3):
     # 120: For each Submission, generate a Decision
     nDecisions = len(decisions)
     for s, submission in enumerate(submissions):
@@ -263,10 +311,19 @@ def generate_120_decisions(adrs, stages, submissions, decisions, fake, paid_rate
                 # Generate random decision
                 if random.random() <= paid_rate:
                     decision = 'PAID IN FULL'
+                    payment = generate_payment( 
+                        adrs, srns, submission['adr_id'], submission['submission_date'], loc=1, scale=0.05,
+                    )
                 elif random.random() <= part_rate:
                     decision = 'PARTIALLY DENIED'
+                    payment = generate_payment( 
+                        adrs, srns, submission['adr_id'], submission['submission_date'], loc=0.6, scale=0.1 
+                        )
                 else:
                     decision = 'DENIED'
+                    payment = generate_payment( 
+                        adrs, srns, submission['adr_id'], submission['submission_date'], amount=0 
+                    )
 
                 decisions.append({
                     'adr_id': submission['adr_id'],
@@ -277,6 +334,18 @@ def generate_120_decisions(adrs, stages, submissions, decisions, fake, paid_rate
                     'decision': decision,
                     'decision_date': submission['submission_date'] + relativedelta(days=15+fake.pyint(-2, 2))
                 })
+                
+                # Generate Takeback if needed
+                prev_pay = get_total_payments(srns, payments, submission['adr_id'])
+                if prev_pay > 0:
+                    takeback = {
+                        'srn_id': payment['srn_id'],
+                        'payment_amount': -prev_pay,
+                        'payment_date': payment['payment_date']
+                    }
+                    payments.append(takeback)
+
+                payments.append(payment)
 
 
 ################################ 180 GENERATORS ################################
@@ -310,7 +379,7 @@ def generate_180_submissions(adrs, stages, submissions, decisions, auditors, fak
                     'auditor_id': randomPick(auditors, 'auditor_id', fake)
                 })
                 
-def generate_180_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.1, part_rate = 0.9):
+def generate_180_decisions_and_payments(adrs, srns, stages, submissions, decisions, payments, fake, paid_rate = 0.1, part_rate = 0.9):
     # 180
     nDecisions = len(decisions)
     for s, submission in enumerate(submissions):
@@ -320,10 +389,19 @@ def generate_180_decisions(adrs, stages, submissions, decisions, fake, paid_rate
                 # Generate random decision
                 if random.random() <= paid_rate:
                     decision = 'PAID IN FULL'
+                    payment = generate_payment( 
+                        adrs, srns, submission['adr_id'], submission['submission_date'], loc=1, scale=0.05,
+                    )
                 elif random.random() <= part_rate:
                     decision = 'PARTIALLY DENIED'
+                    payment = generate_payment( 
+                        adrs, srns, submission['adr_id'], submission['submission_date'], loc=0.6, scale=0.1 
+                        )
                 else:
                     decision = 'DENIED'
+                    payment = generate_payment( 
+                        adrs, srns, submission['adr_id'], submission['submission_date'], amount=0 
+                    )
 
                 decisions.append({
                     'adr_id': submission['adr_id'],
@@ -335,7 +413,17 @@ def generate_180_decisions(adrs, stages, submissions, decisions, fake, paid_rate
                     'decision_date': submission['submission_date'] + relativedelta(days=15+fake.pyint(-2, 2))
                 })
 
+                # Generate Takeback if needed
+                prev_pay = get_total_payments(srns, payments, submission['adr_id'])
+                if prev_pay > 0:
+                    takeback = {
+                        'srn_id': payment['srn_id'],
+                        'payment_amount': -prev_pay,
+                        'payment_date': payment['payment_date']
+                    }
+                    payments.append(takeback)
 
+                payments.append(payment)
 
 
 def generate_data(export=True):
@@ -354,18 +442,19 @@ def generate_data(export=True):
   stages = []
   submissions = []
   decisions = []
+  payments = []
 
   generate_45_stages(adrs, stages, submissions, decisions)
   generate_45_submissions(adrs, stages, submissions, decisions, auditors, fake)
-  generate_45_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.9, part_rate = 0.3)
+  generate_45_decisions_and_payments(adrs, srns, stages, submissions, decisions, payments, fake, paid_rate = 0.9, part_rate = 0.3)
 
   generate_120_stages(adrs, stages, submissions, decisions)
   generate_120_submissions(adrs, stages, submissions, decisions, auditors, fake)
-  generate_120_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.2, part_rate = 0.3)
+  generate_120_decisions_and_payments(adrs, srns, stages, submissions, decisions, payments, fake, paid_rate = 0.2, part_rate = 0.3)
 
   generate_180_stages(adrs, stages, submissions, decisions)
   generate_180_submissions(adrs, stages, submissions, decisions, auditors, fake)
-  generate_180_decisions(adrs, stages, submissions, decisions, fake, paid_rate = 0.8, part_rate = 0.8)
+  generate_180_decisions_and_payments(adrs, srns, stages, submissions, decisions, payments, fake, paid_rate = 0.8, part_rate = 0.8)
 
   if export:
     # Export Main Data
@@ -386,6 +475,7 @@ def generate_data(export=True):
       'stage'       : stages,
       'submission'  : submissions,
       'decision'    : decisions,
+      'payment'     : payments,
       'srn'         : srns,
       'dcn'         : dcns,
       'patient'     : patients,
