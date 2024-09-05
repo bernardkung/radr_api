@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import sqlite3
 import json
 import pandas as pd
@@ -71,17 +72,35 @@ def get_data(tablename, where="", orderby="", groupby="", limit=0):
   return data
 
 
-def query(table_name):
+def get_column(table, column_name):
+  # Ensure the column exists in the model
+  if column_name not in table.__table__.columns:
+    raise IndexError
+  else:
+    column_attr = getattr(table, column_name)
+    return column_attr
 
+
+def query(args):
   with Session(engine) as session:
-    stmt = select(tables[table_name])
+    table = tables[ args['table_name'] ]
+    
+    # Build query
+    stmt = select(table)  
+
+    print(args['filter_column'] is not None, args['filter_value'] is not None)
+    if (args['filter_column'] is not None) and (args['filter_value'] is not None):
+      column_attr = get_column(table, args['filter_column'])
+      stmt = stmt.filter( column_attr == args['filter_value'] )
+
     result = session.execute(stmt)
     
     data = []
     for row in result.all():
-      data.append(row._mapping[table_name].as_dict())
+      data.append(row._mapping[ table ].as_dict())
     
     return {'data': data }
+  
   
 def full_query(args):
    with Session(engine) as session:
@@ -251,6 +270,10 @@ def dashboard_query(args):
 async def root():
     return {"message": "Hello World"}
 
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+  favicon_path = '/static/favicon.ico'
+  return FileResponse(favicon_path)
 
 @app.get("/facilities")
 async def get_facilities():
@@ -269,10 +292,11 @@ async def get_auditors():
   return data
 
 @app.get("/adrs")
-async def get_adrs(adr_id: int = None):
+async def get_adrs(filter_column: str = 'adr_id', adr_id: int = None):
   data = query({
-    'table': 'Adr', 
-    'adr_id': adr_id
+    'table_name': 'Adr', 
+    'filter_column': filter_column,
+    'filter_value': adr_id,
   })
   return data
 
