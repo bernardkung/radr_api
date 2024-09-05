@@ -6,7 +6,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text, select, func
 from sqlalchemy.orm import Session
 from Classes import *
-
+from sqlalchemy.sql import exists
 app = FastAPI()
 
 
@@ -126,7 +126,40 @@ def full_query(args):
 
       
       return {'data': data }
-   
+
+def dev_query(args):
+  with Session(engine) as session:
+    ## Defining Statements
+    kpm_stmts = {
+      'adr_count': (
+        select(func.count(Adr.adr_id))
+      ),
+      'expreimb_sum': (
+        select(func.sum(Adr.expected_reimbursement))
+      ),
+      'payment_sum': (
+        select(func.sum(Payment.payment_amount))
+      ),
+      # 'due_count': (
+      #   select(func.count(Stage.stage_id)))
+      #   .filter((~exists().where(Stage.stage_id == Submission.stage_id))
+      # )
+    }
+
+    # session.query(Ticker).order_by(desc('updated')).first()
+
+    ## Executing Statments
+    results = { key:session.execute(stmt) for key, stmt in kpm_stmts.items() }
+    
+    ## Unpacking Results
+    data = {}
+    for key, result in results.items():
+      data[key] = round(result.scalars().one(), 2)
+
+
+    return { 'data': data }
+
+
 def dashboard_query(args):
   with Session(engine) as session:
     adrs_stmt = (
@@ -134,6 +167,8 @@ def dashboard_query(args):
       .join(Adr.facility)
       .join(Adr.patient)
     )
+
+
     stages_stmt = (
       select(Stage)
       .join(Stage.adr)
@@ -146,12 +181,17 @@ def dashboard_query(args):
       select(Decision, Stage.adr_id)
       .join(Decision.stage)
     )
+    payments_stmt = (
+      select(Payment, Srn.adr_id)
+      .join(Payment.srn)
+    )
 
     stmts = {
       "adrs": adrs_stmt, 
       "stages": stages_stmt, 
       "submissions": submissions_stmt, 
       "decisions": decisions_stmt,
+      "payments": payments_stmt,
     }
 
     results = { key:session.execute(stmt) for key, stmt in stmts.items() }
@@ -164,10 +204,12 @@ def dashboard_query(args):
       for row in result.all():
         if key in ['adrs']:
           row_dict = row_unpack(row)
-        elif key in ['decisions', 'submissions']:
+        elif key in ['decisions', 'submissions', 'payments']:
           row_dict = {'adr_id': row[1], **row[0].as_dict()}
         elif key in ['stages']:
           row_dict = row._asdict()['Stage']
+        else:
+          print(row)
         data.append( row_dict ) 
       return data
   
@@ -218,6 +260,11 @@ async def dash_route():
   data = dashboard_query('Adr')
   return data
 
+@app.get("/dev")
+async def dev_route():
+  data = dev_query('Adr')
+  return data
+
 @app.get("/stages")
 async def get_stages():
   data = query('Stage')
@@ -225,7 +272,7 @@ async def get_stages():
 
 @app.get("/submissions")
 async def get_submissions():
-  data = query('Submission')
+  data = get_submissions('Submission')
   return data
 
 @app.get("/decisions")
