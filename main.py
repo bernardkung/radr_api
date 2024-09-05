@@ -158,6 +158,29 @@ def dev_query(args):
 
 
     return { 'data': data }
+  
+def query_stages(args):
+  with Session(engine) as session:
+    ## Defining Statements
+    stmt = select(Stage)
+    print("args:", args, 'test:', args['stage_id'])
+    if args['stage_id'] is not None:
+      print("rrrrrrrrrrrrrrrrrr")
+      stmt = stmt.filter(Stage.stage_id==args['stage_id'])
+    if args['submitted']==True:
+      stmt = stmt.filter(exists().where(Stage.stage_id == Submission.stage_id))
+    if args['submitted']==False:
+      stmt = stmt.filter(~exists().where(Stage.stage_id == Submission.stage_id))
+
+    ## Executing Statments
+    result = session.execute(stmt)
+    
+    ## Unpacking Results
+    data = {}
+    data['stages'] = [ row._mapping[Stage].as_dict() for row in result.all() ]
+      
+
+    return { 'data': data }
 
 
 def dashboard_query(args):
@@ -266,8 +289,8 @@ async def dev_route():
   return data
 
 @app.get("/stages")
-async def get_stages():
-  data = query('Stage')
+async def get_stages(stage_id: int = None, submitted: bool = None):
+  data = query_stages(args={'stage_id': stage_id, 'submitted': submitted})
   return data
 
 @app.get("/submissions")
