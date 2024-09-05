@@ -269,8 +269,11 @@ async def get_auditors():
   return data
 
 @app.get("/adrs")
-async def get_adrs():
-  data = query('Adr')
+async def get_adrs(adr_id: int = None):
+  data = query({
+    'table': 'Adr', 
+    'adr_id': adr_id
+  })
   return data
 
 @app.get("/full_query")
