@@ -184,7 +184,7 @@ def query_stages(args):
     stmt = (session.query(
         Stage, 
         func.sum(Payment.payment_amount).label('net_payment'),
-        func.sum(Adr.expected_reimbursement).label('expected_reimbursement'),
+        func.avg(Adr.expected_reimbursement).label('expected_reimbursement'),
       )
       .join(Adr.stages)
       .join(Adr.srns)
