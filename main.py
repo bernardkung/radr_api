@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import sqlite3
 import json
 import pandas as pd
@@ -16,6 +17,7 @@ origins = [
   "*"
 ]
 
+# Middleware
 app.add_middleware(
   CORSMiddleware,
   allow_origins=origins,
@@ -23,6 +25,9 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"],
 )
+
+# Mount Static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 engine = create_engine("sqlite+pysqlite:///radr.db", echo=True)
 
@@ -286,12 +291,16 @@ async def root():
 
 @app.get('/favicon.ico', include_in_schema=False)
 async def favicon():
-  favicon_path = '/static/favicon.ico'
+  favicon_path = './static/favicon.ico'
   return FileResponse(favicon_path)
 
 @app.get("/facilities")
-async def get_facilities():
-  data = query('Facility')
+async def get_facilities(filter_column: str = 'global_id', global_id: int = None):
+  data = query({
+    'table_name': 'Facility',
+    'filter_column': filter_column,
+    'filter_value': global_id,
+  })
   return data
 
 
