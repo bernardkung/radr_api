@@ -181,10 +181,18 @@ def dev_query(args):
 def query_stages(args):
   with Session(engine) as session:
     ## Defining Statements
-    stmt = select(Stage)
-    print("args:", args, 'test:', args['stage_id'])
+    stmt = (session.query(
+        Stage, 
+        func.sum(Payment.payment_amount).label('net_payment'),
+        func.sum(Adr.expected_reimbursement).label('expected_reimbursement'),
+      )
+      .join(Adr.stages)
+      .join(Adr.srns)
+      .join(Srn.payments)
+      .group_by(Stage)
+    )
+
     if args['stage_id'] is not None:
-      print("rrrrrrrrrrrrrrrrrr")
       stmt = stmt.filter(Stage.stage_id==args['stage_id'])
     if args['submitted']==True:
       stmt = stmt.filter(exists().where(Stage.stage_id == Submission.stage_id))
@@ -194,9 +202,15 @@ def query_stages(args):
     ## Executing Statments
     result = session.execute(stmt)
     
+    testrow = result.fetchone()
     ## Unpacking Results
     data = {}
-    data['stages'] = [ row._mapping[Stage].as_dict() for row in result.all() ]
+    data['stages'] = [ row._mapping for row in result.all()]
+    # data['stages'] = [ {
+    #   **testrow.Stage.as_dict(), 
+    #   'net_payment': testrow.net_payment,
+    #   'expected_reimbursement': row.expected_reimbursement,
+    # } for row in result.all() ]
       
 
     return { 'data': data }
