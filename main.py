@@ -132,27 +132,30 @@ def query_adrs(args):
     ## Join
     elif ( args['full'] == True ):
       # Get last submission row for each stage
-      # last_submission_stmt = (
-      #   session.query(
-      #     Submission.submission_id,
-      #     func.max(Submission.submission_date).label('last_submission_date'),
-      #   )
-      #   .group_by(Submission.stage_id)
-      #   .order_by(Submission.stage_id, desc(Submission.submission_date))
-      #   .subquery()
-      # )
+      last_submission_stmt = (
+        session.query(
+          Submission.submission_id,
+          Submission.stage_id,
+          func.max(Submission.submission_date).label('last_submission_date'),
+        )
+        .group_by(Submission.stage_id)
+        .order_by(Submission.stage_id, desc(Submission.submission_date))
+        .subquery()
+      )
 
-      # LastSubmissionAlias = aliased(Submission)
+      LastSubmissionAlias = aliased(Submission)
 
-      # stmt = (
-      #   session.query(Adr, LastSubmissionAlias)
-      #   .select_from(join(
-      #     LastSubmissionAlias,
-      #     last_submission_stmt, 
-      #     (LastSubmissionAlias.submission_id == last_submission_stmt.c.submission_id) &
-      #     (LastSubmissionAlias.submission_date == last_submission_stmt.c.last_submission_date)
-      #   ))
-      # )
+      stmt = (
+        session.query(Adr, last_submission_stmt)
+        .select_from(join(
+          Stage,
+          last_submission_stmt,
+          last_submission_stmt.c.stage_id == Stage.stage_id
+          # (LastSubmissionAlias.submission_id == last_submission_stmt.c.submission_id) &
+          # (LastSubmissionAlias.submission_date == last_submission_stmt.c.last_submission_date)
+        ))
+        .join(Adr.stages)
+      )
       
     
     ## Filter
