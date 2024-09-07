@@ -5,8 +5,8 @@ from fastapi.staticfiles import StaticFiles
 import sqlite3
 import json
 import pandas as pd
-from sqlalchemy import create_engine, text, select, func
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, text, select, func, desc
+from sqlalchemy.orm import Session, aliased, join
 from Classes import *
 from sqlalchemy.sql import exists
 app = FastAPI()
@@ -90,22 +90,89 @@ def query(args):
   with Session(engine) as session:
     table = tables[ args['table_name'] ]
     
-    # Build query
-    stmt = select(table)  
+    ## Build query
+    if ( args['full'] == False ):
+      stmt = select(table)  
 
-    print(args['filter_column'] is not None, args['filter_value'] is not None)
+    ## Join
+    elif ( args['full'] == True ):
+      stmt = (select(Adr, func.max())
+        .join(Adr.stages)
+          .join(Stage.submissions)
+            .join(Submission.auditor)
+          .join(Stage.decisions)
+        .join(Adr.srns)
+          .join(Srn.payments)
+        .join(Adr.dcns)
+      )
+      
+    
+    ## Filter
     if (args['filter_column'] is not None) and (args['filter_value'] is not None):
       column_attr = get_column(table, args['filter_column'])
       stmt = stmt.filter( column_attr == args['filter_value'] )
 
+    ## Execute Query
     result = session.execute(stmt)
-    
+
     data = []
     for row in result.all():
       data.append(row._mapping[ table ].as_dict())
     
     return {'data': data }
   
+def query_adrs(args):
+  with Session(engine) as session:
+    table = tables[ args['table_name'] ]
+    
+    ## Build query
+    if ( args['full'] == False ):
+      stmt = select(Adr)  
+
+    ## Join
+    elif ( args['full'] == True ):
+      # Get last submission row for each stage
+      # last_submission_stmt = (
+      #   session.query(
+      #     Submission.submission_id,
+      #     func.max(Submission.submission_date).label('last_submission_date'),
+      #   )
+      #   .group_by(Submission.stage_id)
+      #   .order_by(Submission.stage_id, desc(Submission.submission_date))
+      #   .subquery()
+      # )
+
+      # LastSubmissionAlias = aliased(Submission)
+
+      # stmt = (
+      #   session.query(Adr, LastSubmissionAlias)
+      #   .select_from(join(
+      #     LastSubmissionAlias,
+      #     last_submission_stmt, 
+      #     (LastSubmissionAlias.submission_id == last_submission_stmt.c.submission_id) &
+      #     (LastSubmissionAlias.submission_date == last_submission_stmt.c.last_submission_date)
+      #   ))
+      # )
+      
+    
+    ## Filter
+    if (args['filter_column'] is not None) and (args['filter_value'] is not None):
+      column_attr = get_column(table, args['filter_column'])
+      stmt = stmt.filter( column_attr == args['filter_value'] )
+
+    ## Execute Query
+    result = session.execute(stmt)
+    # res2 = session.execute(last_submission_stmt)
+    # for row in res2:
+    #   print("RRR", row._mapping[Submission].as_dict())
+    #   break
+
+    data = []
+    for row in result.all():
+      data.append(row._mapping[ table ].as_dict())
+    
+
+    return {'data': data }
   
 def full_query(args):
    with Session(engine) as session:
@@ -315,11 +382,12 @@ async def get_auditors():
   return data
 
 @app.get("/adrs")
-async def get_adrs(filter_column: str = 'adr_id', adr_id: int = None):
-  data = query({
+async def get_adrs(full: bool = False, filter_column: str = 'adr_id', adr_id: int = None):
+  data = query_adrs({
     'table_name': 'Adr', 
     'filter_column': filter_column,
     'filter_value': adr_id,
+    'full': full,
   })
   return data
 
