@@ -91,20 +91,21 @@ def query(args):
     table = tables[ args['table_name'] ]
     
     ## Build query
-    if ( args['full'] == False ):
-      stmt = select(table)  
+    stmt = select(table)  
+    # if ( args['full'] == False ):
+    #   stmt = select(table)  
 
-    ## Join
-    elif ( args['full'] == True ):
-      stmt = (select(Adr, func.max())
-        .join(Adr.stages)
-          .join(Stage.submissions)
-            .join(Submission.auditor)
-          .join(Stage.decisions)
-        .join(Adr.srns)
-          .join(Srn.payments)
-        .join(Adr.dcns)
-      )
+    # ## Join
+    # elif ( args['full'] == True ):
+    #   stmt = (select(Adr, func.max())
+    #     .join(Adr.stages)
+    #       .join(Stage.submissions)
+    #         .join(Submission.auditor)
+    #       .join(Stage.decisions)
+    #     .join(Adr.srns)
+    #       .join(Srn.payments)
+    #     .join(Adr.dcns)
+    #   )
       
     
     ## Filter
@@ -135,7 +136,6 @@ def query_adrs(args):
       last_submission_stmt = (
         session.query(
           Submission.submission_id,
-          Submission.stage_id,
           func.max(Submission.submission_date).label('last_submission_date'),
         )
         .group_by(Submission.stage_id)
@@ -143,18 +143,30 @@ def query_adrs(args):
         .subquery()
       )
 
-      LastSubmissionAlias = aliased(Submission)
+      # stmt = (
+      #   session.query(Adr, Stage, last_submission_stmt)
+      #   .select_from(join(
+      #     Adr,
+      #     last_submission_stmt,
+      #     last_submission_stmt.c.stage_id == Stage.stage_id
+      #   ))
+      #   .join(Adr.stages)
+      # )
 
+      # stmt = (session.query(Submission)
+      #   .select_from(join(
+      #     Submission,
+      #     last_submission_stmt,
+      #     last_submission_stmt.c.submission_id == Submission.submission_id,
+      #   ))
+      # )
       stmt = (
-        session.query(Adr, last_submission_stmt)
-        .select_from(join(
-          Stage,
-          last_submission_stmt,
-          last_submission_stmt.c.stage_id == Stage.stage_id
-          # (LastSubmissionAlias.submission_id == last_submission_stmt.c.submission_id) &
-          # (LastSubmissionAlias.submission_date == last_submission_stmt.c.last_submission_date)
-        ))
+        session.query(Adr, Stage, Submission)
         .join(Adr.stages)
+        .join(Stage.submissions)
+        .filter(
+          Submission.submission_id == last_submission_stmt.c.submission_id
+        )
       )
       
     
@@ -165,17 +177,13 @@ def query_adrs(args):
 
     ## Execute Query
     result = session.execute(stmt)
-    # res2 = session.execute(last_submission_stmt)
-    # for row in res2:
-    #   print("RRR", row._mapping[Submission].as_dict())
-    #   break
 
     data = []
     for row in result.all():
-      data.append(row._mapping[ table ].as_dict())
+      data.append(row._mapping)
     
-
     return {'data': data }
+  
   
 def full_query(args):
    with Session(engine) as session:
@@ -415,8 +423,12 @@ async def get_stages(stage_id: int = None, submitted: bool = None):
   return data
 
 @app.get("/submissions")
-async def get_submissions():
-  data = get_submissions('Submission')
+async def get_submissions(filter_column: str = 'submission_id', submission_id: int = None):  
+  data = query({
+    'table_name': 'Submission',
+    'filter_column': filter_column,
+    'filter_value': submission_id,
+  })
   return data
 
 @app.get("/decisions")
