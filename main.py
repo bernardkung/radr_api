@@ -143,23 +143,6 @@ def query_adrs(args):
         .subquery()
       )
 
-      # stmt = (
-      #   session.query(Adr, Stage, last_submission_stmt)
-      #   .select_from(join(
-      #     Adr,
-      #     last_submission_stmt,
-      #     last_submission_stmt.c.stage_id == Stage.stage_id
-      #   ))
-      #   .join(Adr.stages)
-      # )
-
-      # stmt = (session.query(Submission)
-      #   .select_from(join(
-      #     Submission,
-      #     last_submission_stmt,
-      #     last_submission_stmt.c.submission_id == Submission.submission_id,
-      #   ))
-      # )
       stmt = (
         session.query(Adr, Stage, Submission)
         .join(Adr.stages)
