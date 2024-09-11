@@ -6,7 +6,7 @@ import sqlite3
 import json
 import pandas as pd
 from sqlalchemy import create_engine, text, select, func, desc
-from sqlalchemy.orm import Session, aliased, join
+from sqlalchemy.orm import Session, aliased, join, joinedload
 from Classes import *
 from sqlalchemy.sql import exists
 app = FastAPI()
@@ -132,25 +132,17 @@ def query_adrs(args):
 
     ## Join
     elif ( args['full'] == True ):
-      # Get last submission row for each stage
-      last_submission_stmt = (
-        session.query(
-          Submission.submission_id,
-          func.max(Submission.submission_date).label('last_submission_date'),
-        )
-        .group_by(Submission.stage_id)
-        .order_by(Submission.stage_id, desc(Submission.submission_date))
-        .subquery()
-      )
 
       stmt = (
-        session.query(Adr, Stage, Submission)
-        .join(Adr.stages)
-        .join(Stage.submissions)
-        .filter(
-          Submission.submission_id == last_submission_stmt.c.submission_id
+        select(Adr)
+        .options(
+          joinedload(Adr.stages).options(
+            joinedload(Stage.submissions),
+            joinedload(Stage.decisions)
+          )
         )
       )
+
       
     
     ## Filter
@@ -159,7 +151,7 @@ def query_adrs(args):
       stmt = stmt.filter( column_attr == args['filter_value'] )
 
     ## Execute Query
-    result = session.execute(stmt)
+    result = session.execute(stmt).unique()
 
     data = []
     for row in result.all():
