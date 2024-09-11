@@ -133,11 +133,13 @@ def query_adrs(args):
     ## Join
     elif ( args['full'] == True ):
       stmt = (
-        select(Adr)
+        select(Facility, Patient, Adr)
+        .join(Adr.facility)
+        .join(Adr.patient)
         .options(
           joinedload(Adr.stages)
           .options(
-            joinedload(Stage.submissions),
+            joinedload(Stage.submissions).joinedload(Submission.auditor),
             joinedload(Stage.decisions)
           ),
           joinedload(Adr.srns)
