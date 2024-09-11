@@ -132,17 +132,20 @@ def query_adrs(args):
 
     ## Join
     elif ( args['full'] == True ):
-
       stmt = (
         select(Adr)
         .options(
-          joinedload(Adr.stages).options(
+          joinedload(Adr.stages)
+          .options(
             joinedload(Stage.submissions),
             joinedload(Stage.decisions)
+          ),
+          joinedload(Adr.srns)
+          .options(
+            joinedload(Srn.payments)
           )
         )
       )
-
       
     
     ## Filter
