@@ -126,11 +126,11 @@ def query_adrs(args):
   with Session(engine) as session:
     table = tables[ args['table_name'] ]
     
-    ## Build query
+    ## Build basic ADR query
     if ( args['full'] == False ):
       stmt = select(Adr)  
 
-    ## Join
+    ## Build Full Joined query
     elif ( args['full'] == True ):
       stmt = (
         select(Facility, Patient, Adr)
@@ -150,7 +150,7 @@ def query_adrs(args):
       )
       
     
-    ## Filter
+    ## Filter Query
     if (args['filter_column'] is not None) and (args['filter_value'] is not None):
       column_attr = get_column(table, args['filter_column'])
       stmt = stmt.filter( column_attr == args['filter_value'] )
@@ -164,6 +164,168 @@ def query_adrs(args):
     
     return {'data': data }
   
+
+def query_stages(args):
+  with Session(engine) as session:
+    ## Defining Statements
+    stmt = (session.query(
+        Stage, 
+        func.sum(Payment.payment_amount).label('net_payment'),
+        func.avg(Adr.expected_reimbursement).label('expected_reimbursement'),
+      )
+      .join(Adr.stages)
+      .join(Adr.srns)
+      .join(Srn.payments)
+      .group_by(Stage)
+    )
+
+    if args['stage_id'] is not None:
+      stmt = stmt.filter(Stage.stage_id==args['stage_id'])
+    if args['submitted']==True:
+      stmt = stmt.filter(exists().where(Stage.stage_id == Submission.stage_id))
+    if args['submitted']==False:
+      stmt = stmt.filter(~exists().where(Stage.stage_id == Submission.stage_id))
+
+    ## Executing Statments
+    result = session.execute(stmt)
+    
+    testrow = result.fetchone()
+    ## Unpacking Results
+    data = {}
+    data['stages'] = [ row._mapping for row in result.all()]
+    # data['stages'] = [ {
+    #   **testrow.Stage.as_dict(), 
+    #   'net_payment': testrow.net_payment,
+    #   'expected_reimbursement': row.expected_reimbursement,
+    # } for row in result.all() ]
+      
+
+    return { 'data': data }
+
+def query_submissions(args):
+  with Session(engine) as session:
+    ## Build basic ADR query
+    if ( args['full'] == False ):
+      stmt = select(Submission)  
+
+    ## Build Full Joined query
+    elif ( args['full'] == True ):
+      stmt = (select(
+          Submission, 
+          Adr, 
+          Stage, 
+          Auditor,
+        )
+        .join(Submission.stage)
+        .join(Stage.adr)
+        .join(Submission.auditor)
+      )
+
+    ## Filter query
+    if (args['filter_column'] is not None) and (args['filter_value'] is not None):
+      table = tables[ args['Submission'] ]
+      column_attr = get_column(table, args['filter_column'])
+      stmt = stmt.filter( column_attr == args['filter_value'] )
+
+    ## Executing Statments
+    result = session.execute(stmt)
+    
+    ## Unpacking Results
+    data = [ row._mapping for row in result.all()]      
+
+    return { 'data': data }
+  
+def query_decisions(args):
+  with Session(engine) as session:
+    ## Build basic ADR query
+    if ( args['full'] == False ):
+      stmt = select(Decision)  
+
+    ## Build Full Joined query
+    elif ( args['full'] == True ):
+      stmt = (select(
+          Decision, 
+          Adr, 
+          Stage, 
+        )
+        .join(Decision.stage)
+        .join(Stage.adr)
+      )
+
+    ## Filter query
+    if (args['filter_column'] is not None) and (args['filter_value'] is not None):
+      table = tables[ args['Decision'] ]
+      column_attr = get_column(table, args['filter_column'])
+      stmt = stmt.filter( column_attr == args['filter_value'] )
+
+    ## Executing Statments
+    result = session.execute(stmt)
+    
+    ## Unpacking Results
+    data = [ row._mapping for row in result.all()]      
+
+    return { 'data': data }
+
+def dashboard_query(args):
+  with Session(engine) as session:
+    adrs_stmt = (
+      select(Adr, Facility, Patient)
+      .join(Adr.facility)
+      .join(Adr.patient)
+    )
+
+
+    stages_stmt = (
+      select(Stage)
+      .join(Stage.adr)
+    )
+    submissions_stmt = (
+      select(Submission, Stage.adr_id)
+      .join(Submission.stage)
+    )
+    decisions_stmt = (
+      select(Decision, Stage.adr_id)
+      .join(Decision.stage)
+    )
+    payments_stmt = (
+      select(Payment, Srn.adr_id)
+      .join(Payment.srn)
+    )
+
+    stmts = {
+      "adrs": adrs_stmt, 
+      "stages": stages_stmt, 
+      "submissions": submissions_stmt, 
+      "decisions": decisions_stmt,
+      "payments": payments_stmt,
+    }
+
+    results = { key:session.execute(stmt) for key, stmt in stmts.items() }
+
+    def row_unpack(row):
+      return {k:v for tuple in row.tuple() for k, v in tuple.as_dict().items()}
+      
+    def processor(key, result):
+      data = []
+      for row in result.all():
+        if key in ['adrs']:
+          row_dict = row_unpack(row)
+        elif key in ['decisions', 'submissions', 'payments']:
+          row_dict = {'adr_id': row[1], **row[0].as_dict()}
+        elif key in ['stages']:
+          row_dict = row._asdict()['Stage']
+        else:
+          print(row)
+        data.append( row_dict ) 
+      return data
+  
+    data = {}
+    for key, result in results.items():
+      data[key]=processor(key, result)
+
+    return { 'data': data }
+
+  return 
   
 def full_query(args):
    with Session(engine) as session:
@@ -241,105 +403,6 @@ def dev_query(args):
 
     return { 'data': data }
   
-def query_stages(args):
-  with Session(engine) as session:
-    ## Defining Statements
-    stmt = (session.query(
-        Stage, 
-        func.sum(Payment.payment_amount).label('net_payment'),
-        func.avg(Adr.expected_reimbursement).label('expected_reimbursement'),
-      )
-      .join(Adr.stages)
-      .join(Adr.srns)
-      .join(Srn.payments)
-      .group_by(Stage)
-    )
-
-    if args['stage_id'] is not None:
-      stmt = stmt.filter(Stage.stage_id==args['stage_id'])
-    if args['submitted']==True:
-      stmt = stmt.filter(exists().where(Stage.stage_id == Submission.stage_id))
-    if args['submitted']==False:
-      stmt = stmt.filter(~exists().where(Stage.stage_id == Submission.stage_id))
-
-    ## Executing Statments
-    result = session.execute(stmt)
-    
-    testrow = result.fetchone()
-    ## Unpacking Results
-    data = {}
-    data['stages'] = [ row._mapping for row in result.all()]
-    # data['stages'] = [ {
-    #   **testrow.Stage.as_dict(), 
-    #   'net_payment': testrow.net_payment,
-    #   'expected_reimbursement': row.expected_reimbursement,
-    # } for row in result.all() ]
-      
-
-    return { 'data': data }
-
-
-def dashboard_query(args):
-  with Session(engine) as session:
-    adrs_stmt = (
-      select(Adr, Facility, Patient)
-      .join(Adr.facility)
-      .join(Adr.patient)
-    )
-
-
-    stages_stmt = (
-      select(Stage)
-      .join(Stage.adr)
-    )
-    submissions_stmt = (
-      select(Submission, Stage.adr_id)
-      .join(Submission.stage)
-    )
-    decisions_stmt = (
-      select(Decision, Stage.adr_id)
-      .join(Decision.stage)
-    )
-    payments_stmt = (
-      select(Payment, Srn.adr_id)
-      .join(Payment.srn)
-    )
-
-    stmts = {
-      "adrs": adrs_stmt, 
-      "stages": stages_stmt, 
-      "submissions": submissions_stmt, 
-      "decisions": decisions_stmt,
-      "payments": payments_stmt,
-    }
-
-    results = { key:session.execute(stmt) for key, stmt in stmts.items() }
-
-    def row_unpack(row):
-      return {k:v for tuple in row.tuple() for k, v in tuple.as_dict().items()}
-      
-    def processor(key, result):
-      data = []
-      for row in result.all():
-        if key in ['adrs']:
-          row_dict = row_unpack(row)
-        elif key in ['decisions', 'submissions', 'payments']:
-          row_dict = {'adr_id': row[1], **row[0].as_dict()}
-        elif key in ['stages']:
-          row_dict = row._asdict()['Stage']
-        else:
-          print(row)
-        data.append( row_dict ) 
-      return data
-  
-    data = {}
-    for key, result in results.items():
-      data[key]=processor(key, result)
-
-    return { 'data': data }
-
-  return 
-
 
 
 ## Routes
@@ -398,13 +461,22 @@ async def dev_route():
   return data
 
 @app.get("/stages")
-async def get_stages(stage_id: int = None, submitted: bool = None):
-  data = query_stages(args={'stage_id': stage_id, 'submitted': submitted})
+async def get_stages(full: bool = False, stage_id: int = None, submitted: bool = None):
+  data = query_stages(args={
+    'full': full,
+    'stage_id': stage_id, 
+    'submitted': submitted
+  })
   return data
 
 @app.get("/submissions")
-async def get_submissions(filter_column: str = 'submission_id', submission_id: int = None):  
-  data = query({
+async def get_submissions(
+  full: bool = False, 
+  filter_column: str = 'submission_id', 
+  submission_id: int = None
+):
+  data = query_submissions({
+    'full': full,
     'table_name': 'Submission',
     'filter_column': filter_column,
     'filter_value': submission_id,
@@ -412,8 +484,17 @@ async def get_submissions(filter_column: str = 'submission_id', submission_id: i
   return data
 
 @app.get("/decisions")
-async def get_decisions():
-  data = query('Decision')
+async def get_decisions(
+  full: bool = False, 
+  filter_column: str = 'decision_id', 
+  decision_id: int = None
+):
+  data = query_decisions({
+    'full': full,
+    'table_name': 'Decision',
+    'filter_column': filter_column,
+    'filter_value': decision_id,
+  })
   return data
 
 @app.get("/srns")
