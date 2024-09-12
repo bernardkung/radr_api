@@ -491,7 +491,7 @@ async def get_decisions(
 ):
   data = query_decisions({
     'full': full,
-    'table_name': 'Decision',
+    'table_name': 'Decision ',
     'filter_column': filter_column,
     'filter_value': decision_id,
   })
