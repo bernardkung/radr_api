@@ -105,7 +105,8 @@ def generate_adrs(facilities, patients, fake, total_size=10000, export=True):
                 'expected_reimbursement': round(np.random.normal(3000, 244), 2),
                 # 'mrn': patient, ## Add unique patient
                 'global_id': facility,
-                'active': False if np.random.binomial(1, 0.2) == 0 else True,
+                'active': True,
+                # 'active': False if np.random.binomial(1, 0.2) == 0 else True,
                  # 'mcr_status': 'denied', ## Let's impute this from the end
             })
 
@@ -242,10 +243,14 @@ def generate_45_decisions_and_payments(adrs, srns, stages, submissions, decision
         if submission['submission_date'] <= datetime.date.today()-relativedelta(days=30):
             # Generate random decision
             if random.random() <= paid_rate:
+                # Generate payment
                 decision = 'PAID IN FULL'
                 payment = generate_payment( 
                     adrs, srns, submission['adr_id'], submission['submission_date'], loc=1, scale=0.05,
                 )
+                # Set ADR to inactive
+                adr = find_adr(adrs, submission['adr_id'])
+                adr['active']=False
             elif random.random() <= part_rate:
                 decision = 'PARTIALLY DENIED'
                 payment = generate_payment( 
@@ -314,6 +319,9 @@ def generate_120_decisions_and_payments(adrs, srns, stages, submissions, decisio
                     payment = generate_payment( 
                         adrs, srns, submission['adr_id'], submission['submission_date'], loc=1, scale=0.05,
                     )
+                    # Set ADR to inactive
+                    adr = find_adr(adrs, submission['adr_id'])
+                    adr['active']=False
                 elif random.random() <= part_rate:
                     decision = 'PARTIALLY DENIED'
                     payment = generate_payment( 
@@ -412,6 +420,10 @@ def generate_180_decisions_and_payments(adrs, srns, stages, submissions, decisio
                     'decision': decision,
                     'decision_date': submission['submission_date'] + relativedelta(days=15+fake.pyint(-2, 2))
                 })
+
+                # Set ADR to inactive
+                adr = find_adr(adrs, submission['adr_id'])
+                adr['active']=False
 
                 # Generate Takeback if needed
                 prev_pay = get_total_payments(srns, payments, submission['adr_id'])
